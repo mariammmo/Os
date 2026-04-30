@@ -1,8 +1,8 @@
 // ResultTable.java
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import java.awt.*;
 
 public class ResultTable {
     
@@ -128,25 +128,6 @@ public class ResultTable {
 }
 
 // Data classes
-class Process {
-    private String id;
-    private int arrivalTime;
-    private int burstTime;
-    private Integer priority;
-    
-    public Process(String id, int arrivalTime, int burstTime, Integer priority) {
-        this.id = id;
-        this.arrivalTime = arrivalTime;
-        this.burstTime = burstTime;
-        this.priority = priority;
-    }
-    
-    public String getId() { return id; }
-    public int getArrivalTime() { return arrivalTime; }
-    public int getBurstTime() { return burstTime; }
-    public Integer getPriority() { return priority; }
-}
-
 class SJFResult {
     double avgTurnaroundTime;
     double avgWaitingTime;

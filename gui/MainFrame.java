@@ -226,6 +226,30 @@ public class MainFrame extends JFrame {
         }
     }
     
+    private void refreshComparisonTable() {
+        if (comparisonModel != null) {
+            // Optional refresh logic can be added here later.
+        }
+    }
+    
+    private void openSJFWindow() {
+        GanttChartPanel.openSJFWindow(this, processList, latestSJFResult);
+    }
+    
+    private void openPriorityWindow() {
+        GanttChartPanel.openPriorityWindow(this, processList, latestPriorityResult);
+    }
+    
+    private void openComparisonWindow() {
+        ResultTable resultTable = new ResultTable(latestSJFResult, latestPriorityResult);
+        resultTable.openComparisonWindow(this);
+    }
+    
+    private void openConclusionWindow() {
+        ResultTable resultTable = new ResultTable(latestSJFResult, latestPriorityResult);
+        resultTable.openConclusionWindow(this);
+    }
+    
     public List<Process> getProcessList() {
         return processList;
     }

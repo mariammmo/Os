@@ -1,3 +1,4 @@
+
 public class Process {
 
     String processId;
@@ -35,4 +36,19 @@ public class Process {
         this.remainingTime = burstTime;
     }
 
+    public String getId() {
+        return processId;
+    }
+
+    public int getArrivalTime() {
+        return arrivalTime;
+    }
+
+    public int getBurstTime() {
+        return burstTime;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
 }
