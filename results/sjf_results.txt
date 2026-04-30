@@ -1,0 +1,25 @@
+Process	Burst Time	Waiting Time	Turnaround Time	Response Time
+3	3	0	3	0
+3	3	3	6	3
+3	3	6	9	6
+
+Execution Finished Successfully
+
+Process	Burst Time	Waiting Time	Turnaround Time	Response Time
+1	1	0	1	0
+
+Average Waiting Time: 0.00
+Average Turnaround Time: 1.00
+Average Response Time: 0.00
+Execution Finished Successfully
+
+Process	Burst Time	Waiting Time	Turnaround Time	Response Time
+4	3	0	3	0
+1	6	3	9	3
+3	7	9	16	9
+2	8	16	24	16
+
+Average Waiting Time: 7.00
+Average Turnaround Time: 13.00
+Average Response Time: 7.00
+Execution Finished Successfully

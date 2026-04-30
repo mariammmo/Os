@@ -1,6 +1,11 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
 
 
 
@@ -15,11 +20,13 @@ class main {
         System.out.println("2. Priority Scheduling");
         int choice = sc.nextInt();
         List<Process> processes = new ArrayList<>();
+        SJF.Process[] sjfProcesses = null;
+      
      if(choice == 1) {
           System.out.print("Enter the number of processes: ");
             int n = sc.nextInt();
 
-            SJF.Process[] sjfProcesses = new SJF.Process[n];
+            sjfProcesses = new SJF.Process[n];
 
             for (int i = 0; i < n; i++) {
 
@@ -121,8 +128,101 @@ class main {
         } else {
             System.out.println("Invalid choice. Please run the program again and select either 1 or 2.");
         }
-     
-    }
-    
-    
+        /// to save the results in a file
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+          if (choice == 2) {
+                try {
+
+                    File resultsDir = new File("results");
+                    if (!resultsDir.exists()) {
+                        resultsDir.mkdirs();
+                    }
+
+                    PrintWriter writer = new PrintWriter(new FileWriter("results/priority_results.txt", true));
+
+                    writer.println("\nProcess\tBurst\tPriority\tArrival\tWaiting\tTurnaround\tResponse");
+
+                    for (Process p : processes) {
+                        writer.printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\n",
+                                p.processId,
+                                p.burstTime,
+                                p.priority,
+                                p.arrivalTime,
+                                p.waitingTime,
+                                p.turnaroundTime,
+                                p.responseTime);
+                    }
+
+                    // print averages
+                    double avgWaitingTime = processes.stream().mapToInt(p -> p.waitingTime).average().orElse(0);
+                    double avgTurnaroundTime = processes.stream().mapToInt(p -> p.turnaroundTime ).average().orElse(0); 
+                    double avgResponseTime = processes.stream().mapToInt(p -> p.responseTime).average().orElse(0);  
+                    writer.printf("\nAverage Waiting Time: %.2f\n", avgWaitingTime);
+                    writer.printf("Average Turnaround Time: %.2f\n", avgTurnaroundTime);
+                    writer.printf("Average Response Time: %.2f\n", avgResponseTime);
+                    writer.println("Execution Finished Successfully");
+
+                    writer.close();
+
+                    System.out.println("Results saved to TXT file");
+
+                } catch (IOException e) {
+                    System.out.println("Error saving file");
+                }
+            }
+                
+    if (choice == 1) {
+            try {
+
+            File resultsDir = new File("results");
+            if (!resultsDir.exists()) {
+                resultsDir.mkdirs();
+            }
+
+            PrintWriter writer = new PrintWriter(new FileWriter("results/sjf_results.txt", true));
+
+            writer.println("\nProcess\tBurst Time\tWaiting Time\tTurnaround Time\tResponse Time");
+
+            double totalWaiting = 0;
+            double totalTurnaround = 0;
+            double totalResponse = 0;
+
+            for (int i = 0; i < sjfProcesses.length; i++) {
+
+                SJF.Process p = sjfProcesses[i];
+
+                writer.printf("%d\t%d\t%d\t%d\t%d\n",
+                        p.id,
+                        p.bt,
+                        p.wt,
+                        p.tat,
+                        p.rt);
+
+                totalWaiting += p.wt;
+                totalTurnaround += p.tat;
+                totalResponse += p.rt;
+            }
+
+            double sjfAvgWaiting = totalWaiting / sjfProcesses.length;
+            double sjfAvgTurnaround = totalTurnaround / sjfProcesses.length;
+            double sjfAvgResponse = totalResponse / sjfProcesses.length;
+
+            writer.printf("\nAverage Waiting Time: %.2f\n", sjfAvgWaiting);
+            writer.printf("Average Turnaround Time: %.2f\n", sjfAvgTurnaround);
+            writer.printf("Average Response Time: %.2f\n", sjfAvgResponse);
+            writer.println("Execution Finished Successfully");
+
+            writer.close();
+
+            System.out.println("Results saved to TXT file");
+
+        } catch (IOException e) {
+            System.out.println("Error saving file");
+                }
+        }
+    } 
 }   
