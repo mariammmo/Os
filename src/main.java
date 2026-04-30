@@ -36,6 +36,17 @@ class main {
                 sjfProcesses[i].id = sc.nextInt();
 
                 while (true) {
+                    System.out.print("Enter Arrival Time for process " + sjfProcesses[i].id + ": ");
+                    sjfProcesses[i].at = sc.nextInt();
+
+                    if (sjfProcesses[i].at >= 0) {
+                        break;
+                    }
+
+                    System.out.println("Invalid input! Arrival Time must be >= 0.");
+                }
+
+                while (true) {
 
                     System.out.print("Enter Burst Time for process " + sjfProcesses[i].id + ": ");
                     sjfProcesses[i].bt = sc.nextInt();
@@ -48,7 +59,7 @@ class main {
                 }
             }
 
-            SJF.sjf(sjfProcesses, n);
+            SJF.SJF(sjfProcesses, n);
                     
         }
      else if(choice == 2) {
@@ -185,7 +196,7 @@ class main {
 
             PrintWriter writer = new PrintWriter(new FileWriter("results/sjf_results.txt", true));
 
-            writer.println("\nProcess\tBurst Time\tWaiting Time\tTurnaround Time\tResponse Time");
+            writer.println("\nProcess\nArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\tResponse Time");
 
             double totalWaiting = 0;
             double totalTurnaround = 0;
@@ -195,9 +206,10 @@ class main {
 
                 SJF.Process p = sjfProcesses[i];
 
-                writer.printf("%d\t%d\t%d\t%d\t%d\n",
+                writer.printf("%d\t%d\t%d\t%d\t%d\t%d\n",
                         p.id,
                         p.bt,
+                        p.at,
                         p.wt,
                         p.tat,
                         p.rt);

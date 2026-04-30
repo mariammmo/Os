@@ -23,3 +23,37 @@ Average Waiting Time: 7.00
 Average Turnaround Time: 13.00
 Average Response Time: 7.00
 Execution Finished Successfully
+
+Process
+Arrival Time	Burst Time	Waiting Time	Turnaround Time	Response Time
+1	2	0	0	2	0
+6	5	0	2	7	2
+5	5	0	7	12	7
+
+Average Waiting Time: 3.00
+Average Turnaround Time: 7.00
+Average Response Time: 3.00
+Execution Finished Successfully
+
+Process
+Arrival Time	Burst Time	Waiting Time	Turnaround Time	Response Time
+1	2	2	0	2	0
+1	2	2	2	4	2
+2	2	2	4	6	4
+
+Average Waiting Time: 2.00
+Average Turnaround Time: 4.00
+Average Response Time: 2.00
+Execution Finished Successfully
+
+Process
+Arrival Time	Burst Time	Waiting Time	Turnaround Time	Response Time
+1	8	0	0	8	0
+2	4	1	10	14	10
+3	9	2	13	22	13
+4	3	3	5	8	5
+
+Average Waiting Time: 7.00
+Average Turnaround Time: 13.00
+Average Response Time: 7.00
+Execution Finished Successfully
