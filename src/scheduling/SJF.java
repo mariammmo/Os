@@ -115,4 +115,32 @@ public class sjf {
             }
         }
     } 
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        // number of processes
+        int n = readPositiveInt(sc, "\nEnter number of processes: ");
+
+        Process[] p = new Process[n];
+
+        System.out.println("\nEnter Arrival Time and Burst Time for each process:");
+        System.out.println("(Arrival time can be 0 or any positive integer)\n");
+
+        for (int i = 0; i < n; i++) {
+            p[i] = new Process();
+            p[i].id = i + 1;
+
+            System.out.println("── Process P" + p[i].id + " ──");
+            p[i].at = readNonNegInt(sc, "  Arrival Time : ");
+            p[i].bt = readPositiveInt(sc, "  Burst Time   : ");
+            p[i].rem = p[i].bt;      // remaining time starts as full burst
+            p[i].done = false;
+        }
+
+        sc.close();
+
+        // run scheduler
+        sjf(p, n);
+    }
 }
