@@ -226,7 +226,7 @@ public class OS_Project_Main extends JFrame {
         }
     }
     
-    // ========== SJF WINDOW ==========
+    // ========== SJF WINDOW (with Response Time) ==========
     private void openSJFWindow() {
         if (processList.isEmpty()) {
             JOptionPane.showMessageDialog(this, 
@@ -246,8 +246,8 @@ public class OS_Project_Main extends JFrame {
         chartPanel.add(new JLabel("SJF GANTT CHART - PLACEHOLDER"));
         chartPanel.setBorder(BorderFactory.createTitledBorder("Gantt Chart"));
         
-        // Table columns
-        String[] columns = {"Arrival Time", "Turnaround Time", "Waiting Time"};
+        // Table columns: Response Time, Turnaround Time, Waiting Time
+        String[] columns = {"Response Time", "Turnaround Time", "Waiting Time"};
         DefaultTableModel tableModel = new DefaultTableModel(columns, 0);
         JTable outputTable = new JTable(tableModel);
         outputTable.setFillsViewportHeight(true);
@@ -268,43 +268,86 @@ public class OS_Project_Main extends JFrame {
         btnRun.addActionListener(e -> {
             tableModel.setRowCount(0);
             
-            // ==============================================
-            // PLACEHOLDER SJF CODE
-            // ==============================================
+            // Convert to internal SJF process objects
+            int n = processList.size();
+            SJFProcess[] procs = new SJFProcess[n];
+            for (int i = 0; i < n; i++) {
+                Process p = processList.get(i);
+                procs[i] = new SJFProcess();
+                procs[i].id = p.getId();
+                procs[i].at = p.getArrivalTime();
+                procs[i].bt = p.getBurstTime();
+                procs[i].remaining = p.getBurstTime();
+                procs[i].completed = false;
+                procs[i].startTime = -1;
+            }
             
+            // Non-preemptive SJF
+            int currentTime = 0;
+            int completed = 0;
+            while (completed < n) {
+                int shortestIdx = -1;
+                int shortestBurst = Integer.MAX_VALUE;
+                for (int i = 0; i < n; i++) {
+                    if (!procs[i].completed && procs[i].at <= currentTime) {
+                        if (procs[i].bt < shortestBurst) {
+                            shortestBurst = procs[i].bt;
+                            shortestIdx = i;
+                        } else if (procs[i].bt == shortestBurst && shortestIdx != -1) {
+                            if (procs[i].at < procs[shortestIdx].at) {
+                                shortestIdx = i;
+                            }
+                        }
+                    }
+                }
+                if (shortestIdx == -1) {
+                    currentTime++;
+                    continue;
+                }
+                SJFProcess cur = procs[shortestIdx];
+                if (cur.startTime == -1) {
+                    cur.startTime = currentTime;
+                }
+                currentTime += cur.bt;
+                cur.completionTime = currentTime;
+                cur.turnaround = cur.completionTime - cur.at;
+                cur.waiting = cur.turnaround - cur.bt;
+                cur.response = cur.startTime - cur.at;
+                cur.completed = true;
+                completed++;
+            }
             
-            for (Process p : processList) {
-                // Calculate values for this specific process
-                double arrivalTime = p.getArrivalTime();
-                double turnaroundTime = 0; 
-                double waitingTime = 0;    
-                
-                // Calculate averages for THIS process (for the example, just placeholder)
-                double avgArrival = arrivalTime;
-                double avgTurnaround = turnaroundTime;
-                double avgWaiting = waitingTime;
-                
-                // Row 1: Process results
-                Object[] resultRow = {arrivalTime, turnaroundTime, waitingTime};
+            // Calculate averages
+            double totalResponse = 0, totalTurnaround = 0, totalWaiting = 0;
+            for (SJFProcess p : procs) {
+                totalResponse += p.response;
+                totalTurnaround += p.turnaround;
+                totalWaiting += p.waiting;
+            }
+            double avgResponse = totalResponse / n;
+            double avgTurnaround = totalTurnaround / n;
+            double avgWaiting = totalWaiting / n;
+            
+            // Populate table: each process gets white row + blue row with averages
+            for (SJFProcess p : procs) {
+                Object[] resultRow = {p.response, p.turnaround, p.waiting};
                 tableModel.addRow(resultRow);
-                
-                // Row 2: Averages for this process (BLUE)
                 Object[] avgRow = {
-                    String.format("Avg: %.2f", avgArrival),
+                    String.format("Avg: %.2f", avgResponse),
                     String.format("Avg: %.2f", avgTurnaround),
                     String.format("Avg: %.2f", avgWaiting)
                 };
                 tableModel.addRow(avgRow);
             }
             
-            // Style the average rows to have blue background
+            // Blue background for average rows
             outputTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                 @Override
                 public Component getTableCellRendererComponent(JTable table, Object value,
                         boolean isSelected, boolean hasFocus, int row, int column) {
                     Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    if (row % 2 == 1) { // Every second row (average rows)
-                        c.setBackground(new Color(173, 216, 230)); // Light blue
+                    if (row % 2 == 1) {
+                        c.setBackground(new Color(173, 216, 230));
                         c.setForeground(Color.BLACK);
                         setFont(new Font("Arial", Font.BOLD, 12));
                     } else {
@@ -316,8 +359,15 @@ public class OS_Project_Main extends JFrame {
                 }
             });
             
+            latestSJFResult = new SJFResult();
+            latestSJFResult.avgResponseTime = avgResponse;
+            latestSJFResult.avgTurnaroundTime = avgTurnaround;
+            latestSJFResult.avgWaitingTime = avgWaiting;
+            
             JOptionPane.showMessageDialog(sjfDialog, 
-                "SJF Algorithm executed!", 
+                "SJF Algorithm executed!\nAverage Response Time: " + String.format("%.2f", avgResponse) +
+                "\nAverage Waiting Time: " + String.format("%.2f", avgWaiting) +
+                "\nAverage Turnaround Time: " + String.format("%.2f", avgTurnaround), 
                 "SJF Complete", JOptionPane.INFORMATION_MESSAGE);
         });
         
@@ -331,12 +381,35 @@ public class OS_Project_Main extends JFrame {
         sjfDialog.setVisible(true);
     }
     
-    // ========== PRIORITY WINDOW ==========
+    // SJF internal process class
+    static class SJFProcess {
+        String id;
+        int at, bt, remaining, startTime, completionTime, turnaround, waiting, response;
+        boolean completed;
+    }
+    
+    // ========== PRIORITY WINDOW (with Response Time) ==========
     private void openPriorityWindow() {
         if (processList.isEmpty()) {
             JOptionPane.showMessageDialog(this, 
                 "Please add at least one process first!", 
                 "No Processes", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Check priorities exist
+        boolean missingPriority = false;
+        for (Process p : processList) {
+            if (p.getPriority() == null) {
+                missingPriority = true;
+                break;
+            }
+        }
+        if (missingPriority) {
+            JOptionPane.showMessageDialog(this, 
+                "Priority algorithm requires all processes to have a priority value.\n" +
+                "Please add or edit processes to include priority (lower number = higher priority).", 
+                "Missing Priority", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
@@ -348,11 +421,10 @@ public class OS_Project_Main extends JFrame {
         JPanel chartPanel = new JPanel();
         chartPanel.setBackground(Color.LIGHT_GRAY);
         chartPanel.setPreferredSize(new Dimension(0, 250));
-        chartPanel.add(new JLabel("PRIORITY GANTT CHART - PLACEHOLDER"));
+        chartPanel.add(new JLabel("Priority GANTT CHART - PLACEHOLDER"));
         chartPanel.setBorder(BorderFactory.createTitledBorder("Gantt Chart"));
         
-        // Table columns
-        String[] columns = {"Arrival Time", "Turnaround Time", "Waiting Time"};
+        String[] columns = {"Response Time", "Turnaround Time", "Waiting Time"};
         DefaultTableModel tableModel = new DefaultTableModel(columns, 0);
         JTable outputTable = new JTable(tableModel);
         outputTable.setFillsViewportHeight(true);
@@ -373,41 +445,87 @@ public class OS_Project_Main extends JFrame {
         btnRun.addActionListener(e -> {
             tableModel.setRowCount(0);
             
-            // ==============================================
-            // PLACEHOLDER FOR PRIORITY CODE
-           
-            for (Process p : processList) {
-                // Calculate values for this specific process
-                double arrivalTime = p.getArrivalTime();
-                double turnaroundTime = 0; 
-                double waitingTime = 0;     
+            int n = processList.size();
+            PriorityProcess[] procs = new PriorityProcess[n];
+            for (int i = 0; i < n; i++) {
+                Process p = processList.get(i);
+                procs[i] = new PriorityProcess();
+                procs[i].arrivalTime = p.getArrivalTime();
+                procs[i].burstTime = p.getBurstTime();
+                procs[i].priority = p.getPriority();
+                procs[i].remainingTime = p.getBurstTime();
+                procs[i].isCompleted = false;
+                procs[i].startTime = -1;
+            }
+            
+            // Preemptive priority scheduling (lower number = higher priority)
+            int currentTime = 0;
+            int completed = 0;
+            while (completed < n) {
+                PriorityProcess bestProcess = null;
+                int minPriority = Integer.MAX_VALUE;
                 
-                // Calculate averages for THIS process
-                double avgArrival = arrivalTime;
-                double avgTurnaround = turnaroundTime;
-                double avgWaiting = waitingTime;
-                
-                // Row 1: Process results
-                Object[] resultRow = {arrivalTime, turnaroundTime, waitingTime};
+                for (PriorityProcess pp : procs) {
+                    if (pp.arrivalTime <= currentTime && !pp.isCompleted) {
+                        if (pp.priority < minPriority) {
+                            minPriority = pp.priority;
+                            bestProcess = pp;
+                        } else if (pp.priority == minPriority && bestProcess != null) {
+                            if (pp.arrivalTime < bestProcess.arrivalTime) {
+                                bestProcess = pp;
+                            }
+                        }
+                    }
+                }
+                if (bestProcess == null) {
+                    currentTime++;
+                    continue;
+                }
+                if (bestProcess.startTime == -1) {
+                    bestProcess.startTime = currentTime;
+                    bestProcess.responseTime = bestProcess.startTime - bestProcess.arrivalTime;
+                }
+                bestProcess.remainingTime--;
+                currentTime++;
+                if (bestProcess.remainingTime == 0) {
+                    bestProcess.isCompleted = true;
+                    completed++;
+                    bestProcess.completionTime = currentTime;
+                    bestProcess.turnaroundTime = bestProcess.completionTime - bestProcess.arrivalTime;
+                    bestProcess.waitingTime = bestProcess.turnaroundTime - bestProcess.burstTime;
+                }
+            }
+            
+            // Calculate averages
+            double totalResponse = 0, totalTurnaround = 0, totalWaiting = 0;
+            for (PriorityProcess pp : procs) {
+                totalResponse += pp.responseTime;
+                totalTurnaround += pp.turnaroundTime;
+                totalWaiting += pp.waitingTime;
+            }
+            double avgResponse = totalResponse / n;
+            double avgTurnaround = totalTurnaround / n;
+            double avgWaiting = totalWaiting / n;
+            
+            // Populate table
+            for (PriorityProcess pp : procs) {
+                Object[] resultRow = {pp.responseTime, pp.turnaroundTime, pp.waitingTime};
                 tableModel.addRow(resultRow);
-                
-                // Row 2: Averages for this process (BLUE)
                 Object[] avgRow = {
-                    String.format("Avg: %.2f", avgArrival),
+                    String.format("Avg: %.2f", avgResponse),
                     String.format("Avg: %.2f", avgTurnaround),
                     String.format("Avg: %.2f", avgWaiting)
                 };
                 tableModel.addRow(avgRow);
             }
             
-            // Style the average rows to have blue background
             outputTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                 @Override
                 public Component getTableCellRendererComponent(JTable table, Object value,
                         boolean isSelected, boolean hasFocus, int row, int column) {
                     Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    if (row % 2 == 1) { // Every second row (average rows)
-                        c.setBackground(new Color(173, 216, 230)); // Light blue
+                    if (row % 2 == 1) {
+                        c.setBackground(new Color(173, 216, 230));
                         c.setForeground(Color.BLACK);
                         setFont(new Font("Arial", Font.BOLD, 12));
                     } else {
@@ -419,8 +537,15 @@ public class OS_Project_Main extends JFrame {
                 }
             });
             
+            latestPriorityResult = new PriorityResult();
+            latestPriorityResult.avgResponseTime = avgResponse;
+            latestPriorityResult.avgTurnaroundTime = avgTurnaround;
+            latestPriorityResult.avgWaitingTime = avgWaiting;
+            
             JOptionPane.showMessageDialog(priorityDialog, 
-                "Priority Algorithm executed!", 
+                "Priority Algorithm executed!\nAverage Response Time: " + String.format("%.2f", avgResponse) +
+                "\nAverage Waiting Time: " + String.format("%.2f", avgWaiting) +
+                "\nAverage Turnaround Time: " + String.format("%.2f", avgTurnaround), 
                 "Priority Complete", JOptionPane.INFORMATION_MESSAGE);
         });
         
@@ -434,6 +559,12 @@ public class OS_Project_Main extends JFrame {
         priorityDialog.setVisible(true);
     }
     
+    // Internal class for priority processes
+    static class PriorityProcess {
+        int arrivalTime, burstTime, priority, remainingTime, startTime, responseTime, completionTime, turnaroundTime, waitingTime;
+        boolean isCompleted;
+    }
+    
     // ========== COMPARISON WINDOW ==========
     private void openComparisonWindow() {
         comparisonDialog = new JDialog(this, "Algorithm Comparison - 5 Scenarios", false);
@@ -444,7 +575,7 @@ public class OS_Project_Main extends JFrame {
         comparisonModel = new DefaultTableModel(columns, 0);
         JTable comparisonTable = new JTable(comparisonModel);
         comparisonTable.setFillsViewportHeight(true);
-        comparisonTable.setRowHeight(50);
+        comparisonTable.setRowHeight(80);
         comparisonTable.setFont(new Font("Arial", Font.PLAIN, 14));
         
         JTableHeader header = comparisonTable.getTableHeader();
@@ -453,8 +584,8 @@ public class OS_Project_Main extends JFrame {
         header.setForeground(Color.WHITE);
         
         comparisonTable.getColumnModel().getColumn(0).setPreferredWidth(200);
-        comparisonTable.getColumnModel().getColumn(1).setPreferredWidth(250);
-        comparisonTable.getColumnModel().getColumn(2).setPreferredWidth(250);
+        comparisonTable.getColumnModel().getColumn(1).setPreferredWidth(300);
+        comparisonTable.getColumnModel().getColumn(2).setPreferredWidth(300);
         comparisonTable.getColumnModel().getColumn(3).setPreferredWidth(150);
         
         JScrollPane scrollPane = new JScrollPane(comparisonTable);
@@ -472,22 +603,41 @@ public class OS_Project_Main extends JFrame {
         if (comparisonModel != null) {
             comparisonModel.setRowCount(0);
             
-            String sjfWaiting = (latestSJFResult != null) ? 
-                String.format("%.2f", latestSJFResult.avgWaitingTime) : "Not calculated";
-            String priorityWaiting = (latestPriorityResult != null) ? 
-                String.format("%.2f", latestPriorityResult.avgWaitingTime) : "Not calculated";
+            // Get numeric averages if available
+            String sjfResponse = (latestSJFResult != null) ? String.format("%.2f", latestSJFResult.avgResponseTime) : "Not calculated";
+            String priResponse = (latestPriorityResult != null) ? String.format("%.2f", latestPriorityResult.avgResponseTime) : "Not calculated";
+            String sjfWaiting = (latestSJFResult != null) ? String.format("%.2f", latestSJFResult.avgWaitingTime) : "Not calculated";
+            String priWaiting = (latestPriorityResult != null) ? String.format("%.2f", latestPriorityResult.avgWaitingTime) : "Not calculated";
+            String sjfTurnaround = (latestSJFResult != null) ? String.format("%.2f", latestSJFResult.avgTurnaroundTime) : "Not calculated";
+            String priTurnaround = (latestPriorityResult != null) ? String.format("%.2f", latestPriorityResult.avgTurnaroundTime) : "Not calculated";
             
-            String sjfTurnaround = (latestSJFResult != null) ? 
-                String.format("%.2f", latestSJFResult.avgTurnaroundTime) : "Not calculated";
-            String priorityTurnaround = (latestPriorityResult != null) ? 
-                String.format("%.2f", latestPriorityResult.avgTurnaroundTime) : "Not calculated";
+            // Scenario descriptions
+            String scenario1_SJF = "SJF ignores priority. A short job with low priority will still run quickly because SJF selects by CPU burst length, not priority.";
+            String scenario1_Priority = "Priority scheduling may starve a short job with low priority if higher priority (smaller number) processes keep arriving.";
+            String scenario1_Better = "SJF";
+            
+            String scenario2_SJF = "SJF may delay a long job with high priority because it always picks the shortest burst first. The high priority is ignored.";
+            String scenario2_Priority = "Priority scheduling will run the long job immediately if it has the highest priority (smallest number), regardless of its burst length.";
+            String scenario2_Better = "Priority ";
+            
+            String scenario3_SJF = sjfWaiting + sjfTurnaround;
+            String scenario3_Priority = priWaiting + priTurnaround;
+            String scenario3_Better = getBetterOverall();
+            
+            String scenario4_SJF = "SJF gives good response to short jobs but may ignore urgency. Urgent (high priority) long jobs can be delayed.";
+            String scenario4_Priority = "Priority scheduling is designed exactly for urgent processes. Higher priority (smaller number) runs immediately.";
+            String scenario4_Better = "Priority ";
+            
+            String scenario5_SJF = "SJF can cause starvation for long jobs if short jobs keep arriving.";
+            String scenario5_Priority = "Priority can cause starvation for low priority processes if higher priority processes continuously arrive.";
+            String scenario5_Better = "Both ";
             
             Object[][] scenarios = {
-                {"1. Short job has low priority"," " , "", ""},
-                {"2. Long job has high priority", "", "", ""},
-                {"3. Average WT / TAT", sjfWaiting,priorityWaiting , ""},
-                {"4. Urgent processes", "", "", ""},
-                {"5. Fairness", "", "", ""}
+                {"1. Short job has low priority", scenario1_SJF, scenario1_Priority, scenario1_Better},
+                {"2. Long job has high priority", scenario2_SJF, scenario2_Priority, scenario2_Better},
+                {"3. Average WT / TAT", scenario3_SJF, scenario3_Priority, scenario3_Better},
+                {"4. Urgent processes ", scenario4_SJF, scenario4_Priority, scenario4_Better},
+                {"5. Fairness", scenario5_SJF, scenario5_Priority, scenario5_Better}
             };
             
             for (Object[] row : scenarios) {
@@ -496,28 +646,17 @@ public class OS_Project_Main extends JFrame {
         }
     }
     
-    private String getBetterWaitingTime() {
+    private String getBetterOverall() {
         if (latestSJFResult == null || latestPriorityResult == null) 
-            return "Run algorithms first";
-        if (latestSJFResult.avgWaitingTime < latestPriorityResult.avgWaitingTime)
-            return "SJF";
-        else if (latestPriorityResult.avgWaitingTime < latestSJFResult.avgWaitingTime)
-            return "Priority";
-        else
-            return "Equal";
+            return "Run both algorithms";
+        double sjfAvg = (latestSJFResult.avgResponseTime + latestSJFResult.avgWaitingTime + latestSJFResult.avgTurnaroundTime) / 3;
+        double priAvg = (latestPriorityResult.avgResponseTime + latestPriorityResult.avgWaitingTime + latestPriorityResult.avgTurnaroundTime) / 3;
+        if (sjfAvg < priAvg) return "SJF better on average";
+        else if (priAvg < sjfAvg) return "Priority better on average";
+        else return "Equal";
     }
     
-    private String getBetterTurnaroundTime() {
-        if (latestSJFResult == null || latestPriorityResult == null) 
-            return "Run algorithms first";
-        if (latestSJFResult.avgTurnaroundTime < latestPriorityResult.avgTurnaroundTime)
-            return "SJF";
-        else if (latestPriorityResult.avgTurnaroundTime < latestSJFResult.avgTurnaroundTime)
-            return "Priority";
-        else
-            return "Equal";
-    }
-    
+    // ========== CONCLUSION WINDOW ==========
     private void openConclusionWindow() {
         JDialog conclusionDialog = new JDialog(this, "Conclusion", false);
         conclusionDialog.setSize(600, 400);
@@ -546,16 +685,33 @@ public class OS_Project_Main extends JFrame {
             conclusion.append("- Please run Priority algorithm for complete comparison.\n\n");
         } else {
             if (latestSJFResult.avgWaitingTime < latestPriorityResult.avgWaitingTime) {
-                conclusion.append("- SJF is best for minimizing average waiting time.\n");
+                conclusion.append("- SJF minimizes average waiting time.\n");
+                conclusion.append(String.format("  (SJF: %.2f, Priority: %.2f)\n", 
+                    latestSJFResult.avgWaitingTime, latestPriorityResult.avgWaitingTime));
             } else if (latestPriorityResult.avgWaitingTime < latestSJFResult.avgWaitingTime) {
-                conclusion.append("- Priority scheduling is best for handling urgent/important processes.\n");
+                conclusion.append("- Priority minimizes average waiting time.\n");
+                conclusion.append(String.format("  (Priority: %.2f, SJF: %.2f)\n", 
+                    latestPriorityResult.avgWaitingTime, latestSJFResult.avgWaitingTime));
             }
             
             if (latestSJFResult.avgTurnaroundTime < latestPriorityResult.avgTurnaroundTime) {
-                conclusion.append("- SJF is best for minimizing average turnaround time.\n");
+                conclusion.append("- SJF minimizes average turnaround time.\n");
+                conclusion.append(String.format("  (SJF: %.2f, Priority: %.2f)\n", 
+                    latestSJFResult.avgTurnaroundTime, latestPriorityResult.avgTurnaroundTime));
+            } else if (latestPriorityResult.avgTurnaroundTime < latestSJFResult.avgTurnaroundTime) {
+                conclusion.append("- Priority minimizes average turnaround time.\n");
+                conclusion.append(String.format("  (Priority: %.2f, SJF: %.2f)\n", 
+                    latestPriorityResult.avgTurnaroundTime, latestSJFResult.avgTurnaroundTime));
             }
             
-            conclusion.append("- Both algorithms may cause starvation under certain conditions.\n");
+            if (latestSJFResult.avgResponseTime < latestPriorityResult.avgResponseTime) {
+                conclusion.append("- SJF gives better average response time.\n");
+            } else if (latestPriorityResult.avgResponseTime < latestSJFResult.avgResponseTime) {
+                conclusion.append("- Priority gives better average response time.\n");
+            }
+            
+            conclusion.append("\n- Both algorithms may cause starvation under certain conditions.\n");
+            conclusion.append("- Consider using aging to prevent starvation.\n");
         }
         
         conclusionArea.setText(conclusion.toString());
@@ -572,16 +728,20 @@ public class OS_Project_Main extends JFrame {
     }
 }
 
+// Data classes for storing results
 class SJFResult {
+    double avgResponseTime;
     double avgTurnaroundTime;
     double avgWaitingTime;
 }
 
 class PriorityResult {
+    double avgResponseTime;
     double avgTurnaroundTime;
     double avgWaitingTime;
 }
 
+// UI Process class
 class Process {
     private String id;
     private int arrivalTime;
