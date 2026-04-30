@@ -5,7 +5,7 @@
 This project is a simulation and comparison of two CPU scheduling algorithms:
 
 * Shortest Job First (SJF) – Non-preemptive
-* Priority Scheduling – Non-preemptive
+* Priority Scheduling – Preemptive
 
 The system allows users to input processes, run both algorithms, visualize execution using Gantt charts, and compare performance metrics such as waiting time and turnaround time.
 
@@ -32,7 +32,7 @@ It highlights the trade-off between choosing the shortest job and prioritizing u
 * Implementation of:
 
   * Non-preemptive SJF
-  * Non-preemptive Priority Scheduling
+  * Preemptive Priority Scheduling
 * Gantt chart visualization
 * Detailed results table for each algorithm
 * Performance comparison summary
