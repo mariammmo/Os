@@ -25,8 +25,8 @@ public class Process {
             throw new IllegalArgumentException("Arrival time must be >= 0");
         }
 
-        if (priority < 0) {
-            throw new IllegalArgumentException("Priority must be >= 0");
+        if (priority <= 0 ) {
+            throw new IllegalArgumentException("Priority must be >0");
         }
         this.processId = processId;
         this.burstTime = burstTime;

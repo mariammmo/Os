@@ -3,13 +3,12 @@ import java.util.Scanner;
 public class SJF {
      //Process class
     static class Process {
-        int id;
-        int bt;   // burst time
-        int wt; 
-        int tat; 
-        int rt;   
+        public int id;
+        public int bt;   // burst time
+        public int wt; 
+        public int tat; 
+        public int rt;
     }
-
     // SJF scheduling (non-preemptive, all arrive at time 0)
     static void sjf(Process[] p, int n) {
         // Sort processes by burst time (bubble sort)
@@ -60,53 +59,5 @@ public class SJF {
         System.out.printf("Average Response Time: %.2f\n", avg_rt);
     }
 
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-
-        // --- INPUT VALIDATION for number of processes ---
-        int n = 0;
-        while (true) {
-            System.out.print("Enter the number of processes: ");
-            if (sc.hasNextInt()) {
-                n = sc.nextInt();
-                if (n > 0) {
-                    break;
-                } else {
-                    System.out.println("Error: Number of processes must be positive. Try again.");
-                }
-            } else {
-                System.out.println("Error: Invalid input. Please enter an integer.");
-                sc.next(); 
-            }
-        }
-
-        Process[] p = new Process[n];
-        System.out.println("Enter Burst Time for each process:");
-
-        for (int i = 0; i < n; i++) {
-            p[i] = new Process();
-            p[i].id = i + 1;
-
-            // --- INPUT VALIDATION for burst time ---
-            int bt = 0;
-            while (true) {
-                System.out.print("Process " + p[i].id+ " Burst Time: ");
-                if (sc.hasNextInt()) {
-                    bt = sc.nextInt();
-                    if (bt > 0) {
-                        break;
-                    } else {
-                        System.out.println("Error: Burst time must be greater than zero. Try again.");
-                    }
-                } else {
-                    System.out.println("Error: Invalid input. Please enter a positive integer.");
-                    sc.next(); 
-                }
-            }
-            p[i].bt = bt;
-        }
-
-        sc.close();
-        sjf(p, n);
-    }
+    
 }
