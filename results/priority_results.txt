@@ -48,3 +48,23 @@ Average Waiting Time: 0.00
 Average Turnaround Time: 5.00
 Average Response Time: 0.00
 Execution Finished Successfully
+
+Process	Burst	Priority	Arrival	Waiting	Turnaround	Response
+1	1	1		1	0	1		0
+1	11	1		1	1	12		1
+1	1	1		1	12	13		12
+
+================ PRIORITY RESULTS ================
+
+Process    Arrival    Burst      Waiting    Turnaround   Response    
+P1         1          1          0          1            0           
+P2         1          1          1          2            1           
+P3         1          1          2          3            2           
+
+================ PRIORITY RESULTS ================
+
+Process    Arrival    Burst      Priority   Waiting    Turnaround   Response    
+P1         5          5          5          0          5            0           
+P2         5          5          5          5          10           5           
+P3         56         5          5          14         19           14          
+P4         5          55         5          10         65           10          

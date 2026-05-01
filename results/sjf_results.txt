@@ -75,3 +75,15 @@ Average Waiting Time: 0.00
 Average Turnaround Time: 1.00
 Average Response Time: 0.00
 Execution Finished Successfully
+
+Process	Arrival	Burst	Waiting	Turnaround	Response
+1	1	1	0	1	0
+1	1	1	1	2	1
+1	1	1	2	3	2
+
+================ SJF RESULTS ================
+
+Process    Arrival    Burst      Waiting    Turnaround   Response    
+P1         1          1          0          1            0           
+P2         1          1          1          2            1           
+P3         1          1          2          3            2           
