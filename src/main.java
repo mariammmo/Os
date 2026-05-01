@@ -6,27 +6,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-
-
-
-
 class main {
-    public static void main(String[] args) 
-    {
+
+    public static void main(String[] args) {
+
         Scanner sc = new Scanner(System.in);
-        //chiose the scheduling algorithm
-        System.out.println("Choose the scheduling algorithm:");
+
+        System.out.print("Enter the number of processes: ");
+        int n = sc.nextInt();
+
+        System.out.println("\nChoose the scheduling algorithm:");
         System.out.println("1. Shortest Job First (SJF)");
         System.out.println("2. Priority Scheduling");
-        int choice = sc.nextInt();
-        List<Process> processes = new ArrayList<>();
-        SJF.Process[] sjfProcesses = null;
-      
-     if(choice == 1) {
-          System.out.print("Enter the number of processes: ");
-            int n = sc.nextInt();
 
-            sjfProcesses = new SJF.Process[n];
+        int choice = sc.nextInt();
+
+        // ===================== SJF =====================
+        if (choice == 1) {
+
+            SJF.Process[] sjfProcesses = new SJF.Process[n];
 
             for (int i = 0; i < n; i++) {
 
@@ -36,205 +34,112 @@ class main {
                 sjfProcesses[i].id = sc.nextInt();
 
                 while (true) {
-                    System.out.print("Enter Arrival Time for process " + sjfProcesses[i].id + ": ");
+                    System.out.print("Enter Arrival Time: ");
                     sjfProcesses[i].at = sc.nextInt();
-
-                    if (sjfProcesses[i].at >= 0) {
-                        break;
-                    }
-
-                    System.out.println("Invalid input! Arrival Time must be >= 0.");
+                    if (sjfProcesses[i].at >= 0) break;
+                    System.out.println("Invalid Arrival Time!");
                 }
 
                 while (true) {
-
-                    System.out.print("Enter Burst Time for process " + sjfProcesses[i].id + ": ");
+                    System.out.print("Enter Burst Time: ");
                     sjfProcesses[i].bt = sc.nextInt();
-
-                    if (sjfProcesses[i].bt > 0) {
-                        break;
-                    }
-
-                    System.out.println("Invalid input! Burst Time must be greater than 0.");
+                    if (sjfProcesses[i].bt > 0) break;
+                    System.out.println("Invalid Burst Time!");
                 }
             }
 
             SJF.SJF(sjfProcesses, n);
-                    
+
+            try {
+
+                File resultsDir = new File("results");
+                if (!resultsDir.exists()) resultsDir.mkdirs();
+
+                PrintWriter writer = new PrintWriter(
+                        new FileWriter("results/sjf_results.txt", true));
+
+                writer.println("\nProcess\tArrival\tBurst\tWaiting\tTurnaround\tResponse");
+
+                for (SJF.Process p : sjfProcesses) {
+                    writer.printf("%d\t%d\t%d\t%d\t%d\t%d\n",
+                            p.id, p.at, p.bt, p.wt, p.tat, p.rt);
+                }
+
+                writer.close();
+                System.out.println("\nSJF Results saved");
+
+            } catch (IOException e) {
+                System.out.println("Error saving file");
+            }
         }
-     else if(choice == 2) {
-                    System.out.print("Enter the number of processes: ");
-                int n = sc.nextInt();
 
-                for (int i = 0; i < n; i++) {
+        // ===================== PRIORITY =====================
+        else if (choice == 2) {
 
-            System.out.print("Enter Process ID for process " + (i + 1) + ": ");
-            String processId = sc.next();
+            List<PriorityScheduler.Process_Priority> processes =
+                    new ArrayList<>();
 
-            int burstTime;
+            for (int i = 0; i < n; i++) {
 
-            while (true) {
-                System.out.print("Enter Burst Time for process " + processId + ": ");
-                burstTime = sc.nextInt();
+                System.out.print("Enter Process ID: ");
+                String id = sc.next();
 
-                if (burstTime > 0) {
-                    break;
+                int burst;
+                while (true) {
+                    System.out.print("Burst Time: ");
+                    burst = sc.nextInt();
+                    if (burst > 0) break;
                 }
 
-                System.out.println("Invalid input! Burst Time must be greater than 0.");
-            }
-
-            int priority;
-
-            while (true) {
-                System.out.print("Enter Priority for process " + processId + ": ");
-                priority = sc.nextInt();
-
-                if (priority > 0) {
-                    break;
+                int priority;
+                while (true) {
+                    System.out.print("Priority: ");
+                    priority = sc.nextInt();
+                    if (priority > 0) break;
                 }
 
-                System.out.println("Invalid input! Priority must be greater than 0.");
-            }
-
-            int arrivalTime;
-
-            while (true) {
-                System.out.print("Enter Arrival Time for process " + processId + ": ");
-                arrivalTime = sc.nextInt();
-
-                if (arrivalTime >= 0) {
-                    break;
+                int arrival;
+                while (true) {
+                    System.out.print("Arrival Time: ");
+                    arrival = sc.nextInt();
+                    if (arrival >= 0) break;
                 }
 
-                System.out.println("Invalid input! Arrival Time must be >= 0.");
+                processes.add(
+                        new PriorityScheduler.Process_Priority(
+                                id, burst, arrival, priority
+                        )
+                );
             }
 
-            Process p = new Process(processId, burstTime, arrivalTime, priority);
+            // 🔥 STATIC CALL (important fix)
+            PriorityScheduler.scheduleProcesses(processes);
 
-            processes.add(p);
+            System.out.println(
+                    "\nProcess\tBurst\tPriority\tArrival\tWaiting\tTurnaround\tResponse"
+            );
+
+            for (PriorityScheduler.Process_Priority p : processes) {
+
+                System.out.printf(
+                        "%s\t%d\t%d\t\t%d\t%d\t%d\t\t%d\n",
+                        p.processId,
+                        p.burstTime,
+                        p.priority,
+                        p.arrivalTime,
+                        p.waitingTime,
+                        p.turnaroundTime,
+                        p.responseTime
+                );
+            }
+
+            System.out.println("\nPriority Scheduling Done");
+        }
+
+        else {
+            System.out.println("Invalid choice");
         }
 
         sc.close();
-
-        PriorityScheduler scheduler = new PriorityScheduler();
-        scheduler.scheduleProcesses(processes);
-
-        // Display results
-        System.out.println("\nProcess\tBurst Time\tPriority\tArrival Time\tWaiting Time\tTurnaround Time\tResponse Time");
-        System.out.println("---------------------------------------------------------------------------------------------");
-        for (Process p : processes) {
-            System.out.printf("%s\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n", 
-                p.processId, p.burstTime, p.priority, p.arrivalTime, 
-                p.waitingTime, p.turnaroundTime, p.responseTime);
-        }
-        // Calculate and display averages for priority scheduling
-        double avgWaitingTime = processes.stream().mapToInt(p -> p.waitingTime).average().orElse(0);
-        double avgTurnaroundTime = processes.stream().mapToInt(p -> p.turnaroundTime).average().orElse(0);
-        double avgResponseTime = processes.stream().mapToInt(p -> p.responseTime).average().orElse(0);
-        System.out.printf("\nAverage Waiting Time: %.2f\n", avgWaitingTime);
-        System.out.printf("Average Turnaround Time: %.2f\n", avgTurnaroundTime);
-        System.out.printf("Average Response Time: %.2f\n", avgResponseTime);
-
-        } else {
-            System.out.println("Invalid choice. Please run the program again and select either 1 or 2.");
-        }
-        /// to save the results in a file
-        /// 
-        /// 
-        /// 
-        /// 
-        /// 
-          if (choice == 2) {
-                try {
-
-                    File resultsDir = new File("results");
-                    if (!resultsDir.exists()) {
-                        resultsDir.mkdirs();
-                    }
-
-                    PrintWriter writer = new PrintWriter(new FileWriter("results/priority_results.txt", true));
-
-                    writer.println("\nProcess\tBurst\tPriority\tArrival\tWaiting\tTurnaround\tResponse");
-
-                    for (Process p : processes) {
-                        writer.printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\n",
-                                p.processId,
-                                p.burstTime,
-                                p.priority,
-                                p.arrivalTime,
-                                p.waitingTime,
-                                p.turnaroundTime,
-                                p.responseTime);
-                    }
-
-                    // print averages
-                    double avgWaitingTime = processes.stream().mapToInt(p -> p.waitingTime).average().orElse(0);
-                    double avgTurnaroundTime = processes.stream().mapToInt(p -> p.turnaroundTime ).average().orElse(0); 
-                    double avgResponseTime = processes.stream().mapToInt(p -> p.responseTime).average().orElse(0);  
-                    writer.printf("\nAverage Waiting Time: %.2f\n", avgWaitingTime);
-                    writer.printf("Average Turnaround Time: %.2f\n", avgTurnaroundTime);
-                    writer.printf("Average Response Time: %.2f\n", avgResponseTime);
-                    writer.println("Execution Finished Successfully");
-
-                    writer.close();
-
-                    System.out.println("Results saved to TXT file");
-
-                } catch (IOException e) {
-                    System.out.println("Error saving file");
-                }
-            }
-                
-    if (choice == 1) {
-            try {
-
-            File resultsDir = new File("results");
-            if (!resultsDir.exists()) {
-                resultsDir.mkdirs();
-            }
-
-            PrintWriter writer = new PrintWriter(new FileWriter("results/sjf_results.txt", true));
-
-            writer.println("\nProcess\nArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\tResponse Time");
-
-            double totalWaiting = 0;
-            double totalTurnaround = 0;
-            double totalResponse = 0;
-
-            for (int i = 0; i < sjfProcesses.length; i++) {
-
-                SJF.Process p = sjfProcesses[i];
-
-                writer.printf("%d\t%d\t%d\t%d\t%d\t%d\n",
-                        p.id,
-                        p.bt,
-                        p.at,
-                        p.wt,
-                        p.tat,
-                        p.rt);
-
-                totalWaiting += p.wt;
-                totalTurnaround += p.tat;
-                totalResponse += p.rt;
-            }
-
-            double sjfAvgWaiting = totalWaiting / sjfProcesses.length;
-            double sjfAvgTurnaround = totalTurnaround / sjfProcesses.length;
-            double sjfAvgResponse = totalResponse / sjfProcesses.length;
-
-            writer.printf("\nAverage Waiting Time: %.2f\n", sjfAvgWaiting);
-            writer.printf("Average Turnaround Time: %.2f\n", sjfAvgTurnaround);
-            writer.printf("Average Response Time: %.2f\n", sjfAvgResponse);
-            writer.println("Execution Finished Successfully");
-
-            writer.close();
-
-            System.out.println("Results saved to TXT file");
-
-        } catch (IOException e) {
-            System.out.println("Error saving file");
-                }
-        }
-    } 
-}   
+    }
+}

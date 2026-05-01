@@ -1,56 +1,100 @@
 import java.util.List;
 
-/**
- *
- * @author hp
- */
 public class PriorityScheduler {
-    public void scheduleProcesses(List<Process> processes) {
+
+    public static class Process_Priority {
+
+        String processId;
+        int burstTime;
+        int arrivalTime;
+        int priority;
+
+        boolean isCompleted = false;
+        int remainingTime;
+        int startTime = -1;
+        int completionTime;
+        int waitingTime;
+        int turnaroundTime;
+        int responseTime;
+
+        public Process_Priority(String processId, int burstTime, int arrivalTime, int priority) {
+
+            if (processId == null || processId.isEmpty()) {
+                throw new IllegalArgumentException("Process ID cannot be empty");
+            }
+            if (burstTime <= 0) {
+                throw new IllegalArgumentException("Burst time must be > 0");
+            }
+            if (arrivalTime < 0) {
+                throw new IllegalArgumentException("Arrival time must be >= 0");
+            }
+            if (priority <= 0) {
+                throw new IllegalArgumentException("Priority must be > 0");
+            }
+
+            this.processId = processId;
+            this.burstTime = burstTime;
+            this.arrivalTime = arrivalTime;
+            this.priority = priority;
+            this.remainingTime = burstTime;
+        }
+    }
+
+    // 🔥 IMPORTANT: static
+    public static void scheduleProcesses(List<Process_Priority> processes) {
+
         int currentTime = 0;
         int completed = 0;
-        int n = processes.size(); //عدد ال processes
-        // هيفضل شغال لحد ما كل ال processes اللي عندنا تخلص 
+        int n = processes.size();
+
         while (completed < n) {
-            Process bestProcess = null;
+
+            Process_Priority bestProcess = null;
             int minPriority = Integer.MAX_VALUE;
 
-            for (Process p : processes) {
-                // process لازم تكون وصلت ومش completed 
+            for (Process_Priority p : processes) {
+
                 if (p.arrivalTime <= currentTime && !p.isCompleted) {
-                    // lw rkm el priority bta3ha a2l yb2a de elly httnfz 
+
                     if (p.priority < minPriority) {
                         minPriority = p.priority;
                         bestProcess = p;
-                    } 
-                    // لو اتنين نفس الرقم يبقي اللي جت الاول تتنفذ الاول  tie Breaking
+                    }
+
                     else if (p.priority == minPriority) {
-                        if (bestProcess == null || p.arrivalTime < bestProcess.arrivalTime) {
+                        if (bestProcess == null ||
+                                p.arrivalTime < bestProcess.arrivalTime) {
                             bestProcess = p;
                         }
                     }
                 }
             }
-            // لو مفيش process يبقي ال cpu idle
+
             if (bestProcess == null) {
                 currentTime++;
                 continue;
             }
-            // تحديث وقت الاستجابة (Response Time) عند أول تشغيل فقط 
+
             if (bestProcess.startTime == -1) {
                 bestProcess.startTime = currentTime;
-                bestProcess.responseTime = bestProcess.startTime - bestProcess.arrivalTime;
+                bestProcess.responseTime =
+                        bestProcess.startTime - bestProcess.arrivalTime;
             }
-            // ينفذ (1 unit) و يرجع يختار تاني Preemptive
+
             bestProcess.remainingTime--;
             currentTime++;
-            //لو ال process خلصت
+
             if (bestProcess.remainingTime == 0) {
                 bestProcess.isCompleted = true;
                 completed++;
+
                 bestProcess.completionTime = currentTime;
-                
-                bestProcess.turnaroundTime = bestProcess.completionTime - bestProcess.arrivalTime;
-                bestProcess.waitingTime = bestProcess.turnaroundTime - bestProcess.burstTime;
+
+                bestProcess.turnaroundTime =
+                        bestProcess.completionTime - bestProcess.arrivalTime;
+
+                bestProcess.waitingTime =
+                        bestProcess.turnaroundTime - bestProcess.burstTime;
             }
         }
     }
