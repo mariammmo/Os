@@ -9,7 +9,7 @@ import java.util.Scanner;
 class main {
 
     // ===================== TABLE HEADER =====================
-    static void printHeader() {
+    static void printHeaderSJF() {
 
         System.out.println(
                 "============================================================================");
@@ -26,6 +26,26 @@ class main {
 
         System.out.println(
                 "============================================================================");
+    }
+
+    static void printHeaderPriority() {
+
+        System.out.println(
+                "======================================================================================");
+
+        System.out.printf(
+                "%-10s %-10s %-10s %-10s %-10s %-12s %-12s\n",
+                "Process",
+                "Arrival",
+                "Burst",
+                "Priority",
+                "Waiting",
+                "Turnaround",
+                "Response"
+        );
+
+        System.out.println(
+                "======================================================================================");
     }
 
     public static void main(String[] args) {
@@ -45,19 +65,22 @@ class main {
         if (choice == 1) {
 
             SJF.Process[] sjfProcesses = new SJF.Process[n];
+            String[] processNames = new String[n];
 
             for (int i = 0; i < n; i++) {
 
                 sjfProcesses[i] = new SJF.Process();
 
-                // ID موحد
+                System.out.print("Enter Process ID: ");
+                processNames[i] = sc.next();
+
                 sjfProcesses[i].id = i + 1;
 
                 while (true) {
 
                     System.out.print(
-                            "Enter Arrival Time for P"
-                                    + sjfProcesses[i].id + ": ");
+                            "Enter Arrival Time for "
+                                    + processNames[i] + ": ");
 
                     sjfProcesses[i].at = sc.nextInt();
 
@@ -71,8 +94,8 @@ class main {
                 while (true) {
 
                     System.out.print(
-                            "Enter Burst Time for P"
-                                    + sjfProcesses[i].id + ": ");
+                            "Enter Burst Time for "
+                                    + processNames[i] + ": ");
 
                     sjfProcesses[i].bt = sc.nextInt();
 
@@ -90,23 +113,57 @@ class main {
             // ===================== DISPLAY =====================
             System.out.println("\n================ SJF RESULTS ================\n");
 
-            printHeader();
+            printHeaderSJF();
 
-            for (SJF.Process p : sjfProcesses) {
+            double totalWaiting = 0;
+            double totalTurnaround = 0;
+            double totalResponse = 0;
+
+            for (int i = 0; i < sjfProcesses.length; i++) {
+
+                SJF.Process p = sjfProcesses[i];
 
                 System.out.printf(
                         "%-10s %-10d %-10d %-10d %-12d %-12d\n",
-                        "P" + p.id,
+                        processNames[i],
                         p.at,
                         p.bt,
                         p.wt,
                         p.tat,
                         p.rt
                 );
+
+                totalWaiting += p.wt;
+                totalTurnaround += p.tat;
+                totalResponse += p.rt;
             }
+
+            double avgWaiting =
+                    totalWaiting / sjfProcesses.length;
+
+            double avgTurnaround =
+                    totalTurnaround / sjfProcesses.length;
+
+            double avgResponse =
+                    totalResponse / sjfProcesses.length;
 
             System.out.println(
                     "============================================================================");
+
+            System.out.printf(
+                    "\nAverage Waiting Time: %.2f\n",
+                    avgWaiting
+            );
+
+            System.out.printf(
+                    "Average Turnaround Time: %.2f\n",
+                    avgTurnaround
+            );
+
+            System.out.printf(
+                    "Average Response Time: %.2f\n",
+                    avgResponse
+            );
 
             // ===================== SAVE FILE =====================
             try {
@@ -136,11 +193,13 @@ class main {
                         "Response"
                 );
 
-                for (SJF.Process p : sjfProcesses) {
+                for (int i = 0; i < sjfProcesses.length; i++) {
+
+                    SJF.Process p = sjfProcesses[i];
 
                     writer.printf(
                             "%-10s %-10d %-10d %-10d %-12d %-12d\n",
-                            "P" + p.id,
+                            processNames[i],
                             p.at,
                             p.bt,
                             p.wt,
@@ -148,6 +207,24 @@ class main {
                             p.rt
                     );
                 }
+
+                writer.println(
+                        "============================================================================");
+
+                writer.printf(
+                        "\nAverage Waiting Time: %.2f\n",
+                        avgWaiting
+                );
+
+                writer.printf(
+                        "Average Turnaround Time: %.2f\n",
+                        avgTurnaround
+                );
+
+                writer.printf(
+                        "Average Response Time: %.2f\n",
+                        avgResponse
+                );
 
                 writer.close();
 
@@ -167,8 +244,8 @@ class main {
 
             for (int i = 0; i < n; i++) {
 
-                // ID موحد
-                String id = "P" + (i + 1);
+                System.out.print("Enter Process ID: ");
+                String id = sc.next();
 
                 int burst;
 
@@ -238,24 +315,56 @@ class main {
             System.out.println(
                     "\n================ PRIORITY RESULTS ================\n");
 
-            printHeader();
+            printHeaderPriority();
+
+            double totalWaiting = 0;
+            double totalTurnaround = 0;
+            double totalResponse = 0;
 
             for (PriorityScheduler.Process_Priority p : processes) {
 
                 System.out.printf(
                         "%-10s %-10d %-10d %-10d %-10d %-12d %-12d\n",
                         p.processId,
-                        p.priority,
                         p.arrivalTime,
                         p.burstTime,
+                        p.priority,
                         p.waitingTime,
                         p.turnaroundTime,
                         p.responseTime
                 );
+
+                totalWaiting += p.waitingTime;
+                totalTurnaround += p.turnaroundTime;
+                totalResponse += p.responseTime;
             }
 
+            double avgWaiting =
+                    totalWaiting / processes.size();
+
+            double avgTurnaround =
+                    totalTurnaround / processes.size();
+
+            double avgResponse =
+                    totalResponse / processes.size();
+
             System.out.println(
-                    "============================================================================");
+                    "======================================================================================");
+
+            System.out.printf(
+                    "\nAverage Waiting Time: %.2f\n",
+                    avgWaiting
+            );
+
+            System.out.printf(
+                    "Average Turnaround Time: %.2f\n",
+                    avgTurnaround
+            );
+
+            System.out.printf(
+                    "Average Response Time: %.2f\n",
+                    avgResponse
+            );
 
             // ===================== SAVE FILE =====================
             try {
@@ -299,6 +408,24 @@ class main {
                             p.responseTime
                     );
                 }
+
+                writer.println(
+                        "======================================================================================");
+
+                writer.printf(
+                        "\nAverage Waiting Time: %.2f\n",
+                        avgWaiting
+                );
+
+                writer.printf(
+                        "Average Turnaround Time: %.2f\n",
+                        avgTurnaround
+                );
+
+                writer.printf(
+                        "Average Response Time: %.2f\n",
+                        avgResponse
+                );
 
                 writer.close();
 

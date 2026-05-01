@@ -87,3 +87,21 @@ Process    Arrival    Burst      Waiting    Turnaround   Response
 P1         1          1          0          1            0           
 P2         1          1          1          2            1           
 P3         1          1          2          3            2           
+
+================ SJF RESULTS ================
+
+Process    Arrival    Burst      Waiting    Turnaround   Response    
+1          0          8          0          8            0           
+2          1          4          10         14           10          
+3          2          9          13         22           13          
+3          3          3          5          8            5           
+
+================ SJF RESULTS ================
+
+Process    Arrival    Burst      Waiting    Turnaround   Response    
+1          1          1          0          1            0           
+============================================================================
+
+Average Waiting Time: 0.00
+Average Turnaround Time: 1.00
+Average Response Time: 0.00
