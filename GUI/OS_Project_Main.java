@@ -1,3 +1,12 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+
+/**
+ *
+ * @author Maya sameh
+ */
 // OS_Project_Main.java
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -69,13 +78,13 @@ public class OS_Project_Main extends JFrame {
         centerPanel.add(btnViewProcessTable, gbc);
         
         btnRunSJF = createStyledButton(" RUN SJF ALGORITHM", buttonSize, buttonFont, new Color(255, 140, 0));
-        btnRunSJF.addActionListener(e -> openSJFWindow());
+        btnRunSJF.addActionListener(e -> GanttChartPanel.openSJFWindow(this, processList));
         gbc.gridx = 0;
         gbc.gridy = 2;
         centerPanel.add(btnRunSJF, gbc);
         
         btnRunPriority = createStyledButton(" RUN PRIORITY ALGORITHM", buttonSize, buttonFont, new Color(218, 112, 214));
-        btnRunPriority.addActionListener(e -> openPriorityWindow());
+        GanttChartPanel.openPriorityWindow(this, processList, latestPriorityResult);
         gbc.gridx = 0;
         gbc.gridy = 3;
         centerPanel.add(btnRunPriority, gbc);
