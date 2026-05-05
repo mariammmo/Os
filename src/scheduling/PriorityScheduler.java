@@ -40,7 +40,7 @@ public class PriorityScheduler {
         }
     }
 
-    // 🔥 IMPORTANT: static
+    //  IMPORTANT: static
     public static void scheduleProcesses(List<Process_Priority> processes) {
 
         int currentTime = 0;
