@@ -105,3 +105,14 @@ Process    Arrival    Burst      Priority   Waiting    Turnaround   Response
 Average Waiting Time: 1.00
 Average Turnaround Time: 3.00
 Average Response Time: 1.00
+
+================ PRIORITY RESULTS ================
+
+Process    Arrival    Burst      Priority   Waiting    Turnaround   Response    
+1          1          1          1          0          1            0           
+1          1          1          1          1          2            1           
+======================================================================================
+
+Average Waiting Time: 0.50
+Average Turnaround Time: 1.50
+Average Response Time: 0.50
