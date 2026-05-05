@@ -1,3 +1,12 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+
+/**
+ *
+ * @author Maya sameh
+ */
 // MainFrame.java
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -233,7 +242,7 @@ public class MainFrame extends JFrame {
     }
     
     private void openSJFWindow() {
-        GanttChartPanel.openSJFWindow(this, processList, latestSJFResult);
+        GanttChartPanel.openSJFWindow(this, processList);
     }
     
     private void openPriorityWindow() {
