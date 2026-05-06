@@ -1,3 +1,5 @@
+package osprojectfinal;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -12,6 +14,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,9 +36,6 @@ public class GanttChartPanel {
         new Color(152, 251, 152),
     };
 
-    static void openPriorityWindow(MainFrame aThis, List<Process> processList, PriorityResult latestPriorityResult) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
 
     static class GanttEntry {
         String processId;
@@ -188,7 +189,7 @@ public class GanttChartPanel {
             }
 
             // تشغيل SJF
-            SJF.SJF(sjfArr, n);
+            osprojectfinal.SJF(sjfArr, n);
 
             // بناء الـ Gantt entries
             // SJF non-preemptive: كل process بتتنفذ من startTime لـ startTime + bt
@@ -249,7 +250,7 @@ public class GanttChartPanel {
 
     // ===================== PRIORITY WINDOW =====================
 
-    public static void openPriorityWindow(java.awt.Window parent, List<Process> processList) {
+    public static void openPriorityWindow(Window parent, List<Process> processList, PriorityResult latestPriorityResult) {
         if (processList.isEmpty()) {
             JOptionPane.showMessageDialog(parent,
                 "Please add at least one process first!",
@@ -432,4 +433,159 @@ public class GanttChartPanel {
             }
         });
     }
+    // ===================== SRTF WINDOW =====================
+
+public static void openSRTFWindow(java.awt.Window parent, List<Process> processList) {
+    if (processList.isEmpty()) {
+        JOptionPane.showMessageDialog(null,
+            "Please add at least one process first!",
+            "No Processes", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    JDialog srtfDialog = new JDialog((Frame) parent, "SRTF (Preemptive SJF) Scheduling", false);
+    srtfDialog.setSize(1000, 750);
+    srtfDialog.setLocationRelativeTo(parent);
+    srtfDialog.setLayout(new BorderLayout(0, 10));
+
+    // Gantt panel
+    GanttDrawPanel ganttDraw = new GanttDrawPanel();
+    JPanel ganttWrapper = new JPanel(new BorderLayout());
+    ganttWrapper.setBackground(Color.WHITE);
+    ganttWrapper.setBorder(BorderFactory.createTitledBorder("Gantt Chart — SRTF"));
+    ganttWrapper.add(new JScrollPane(ganttDraw), BorderLayout.CENTER);
+    ganttWrapper.setPreferredSize(new Dimension(0, 150));
+
+    // Results table
+    String[] columns = {"Process ID", "Arrival Time", "Burst Time", "Waiting Time", "Turnaround Time", "Response Time"};
+    DefaultTableModel tableModel = new DefaultTableModel(columns, 0);
+    JTable outputTable = new JTable(tableModel);
+    outputTable.setFillsViewportHeight(true);
+    outputTable.setRowHeight(30);
+
+    JTableHeader header = outputTable.getTableHeader();
+    header.setFont(new Font("Arial", Font.BOLD, 14));
+    header.setBackground(new Color(70, 180, 130));
+    header.setForeground(Color.WHITE);
+
+    JScrollPane tableScroll = new JScrollPane(outputTable);
+
+    JButton btnRun = new JButton("RUN SRTF");
+    btnRun.setFont(new Font("Arial", Font.BOLD, 16));
+    btnRun.setBackground(new Color(70, 180, 130));
+    btnRun.setForeground(Color.WHITE);
+
+    btnRun.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            tableModel.setRowCount(0);
+            int n = processList.size();
+            // بناء الـ SRTF processes
+            SJF_preemptive.Process[] srtfArr = new SJF_preemptive.Process[n];
+            for (int i = 0; i < n; i++) {
+                Process p = processList.get(i);
+                srtfArr[i] = new SJF_preemptive.Process();
+                srtfArr[i].id = i + 1;
+                srtfArr[i].at = p.getArrivalTime();
+                srtfArr[i].bt = p.getBurstTime();
+                srtfArr[i].rem = p.getBurstTime();
+                srtfArr[i].done = false;
+                srtfArr[i].startedOnce = false;
+            }   // بناء الـ timeline للـ Gantt أثناء تشغيل الـ algorithm
+            List<GanttEntry> entries = new ArrayList<>();
+            String gLastId = null;
+            int gBlockStart = 0;
+            int currentTime = 0;
+            int completed = 0;
+            while (completed < n) {
+                int shortest = -1;
+                int minRemaining = Integer.MAX_VALUE;
+                
+                for (int i = 0; i < n; i++) {
+                    if (srtfArr[i].at <= currentTime && !srtfArr[i].done) {
+                        if (srtfArr[i].rem < minRemaining) {
+                            minRemaining = srtfArr[i].rem;
+                            shortest = i;
+                        } else if (srtfArr[i].rem == minRemaining && shortest != -1
+                                && srtfArr[i].at < srtfArr[shortest].at) {
+                            shortest = i;
+                        }
+                    }
+                }
+                
+                if (shortest == -1) {
+                    // CPU idle
+                    if (!"IDLE".equals(gLastId)) {
+                        if (gLastId != null) {
+                            entries.add(new GanttEntry(gLastId, gBlockStart, currentTime));
+                        }
+                        gBlockStart = currentTime;
+                        gLastId = "IDLE";
+                    }
+                    currentTime++;
+                    continue;
+                }
+                
+                SJF_preemptive.Process cur = srtfArr[shortest];
+                String currentId = processList.get(shortest).getId();
+                
+                // لو اتغير الـ process، اسجل الـ block السابق
+                if (!currentId.equals(gLastId)) {
+                    if (gLastId != null) {
+                        entries.add(new GanttEntry(gLastId, gBlockStart, currentTime));
+                    }
+                    gBlockStart = currentTime;
+                    gLastId = currentId;
+                }
+                
+                // Response time
+                if (!cur.startedOnce) {
+                    cur.rt = currentTime - cur.at;
+                    cur.startedOnce = true;
+                }
+                
+                cur.rem--;
+                currentTime++;
+                
+                if (cur.rem == 0) {
+                    cur.done = true;
+                    completed++;
+                    cur.tat = currentTime - cur.at;
+                    cur.wt = cur.tat - cur.bt;
+                    entries.add(new GanttEntry(gLastId, gBlockStart, currentTime));
+                    gLastId = null;
+                }
+            }   ganttDraw.setEntries(entries);
+            double totalWT = 0, totalTAT = 0, totalRT = 0;
+            for (int i = 0; i < n; i++) {
+                SJF_preemptive.Process p = srtfArr[i];
+                tableModel.addRow(new Object[]{
+                    processList.get(i).getId(),
+                    p.at,
+                    p.bt,
+                    p.wt,
+                    p.tat,
+                    p.rt
+                });
+                totalWT  += p.wt;
+                totalTAT += p.tat;
+                totalRT  += p.rt;
+            }   // صف المتوسطات
+            tableModel.addRow(new Object[]{
+                "Average", "—", "—",
+                String.format("%.2f", totalWT  / n),
+                String.format("%.2f", totalTAT / n),
+                String.format("%.2f", totalRT  / n)
+            }); styleTable(outputTable, tableModel);
+        }
+    });
+
+    JPanel topPanel = new JPanel();
+    topPanel.add(btnRun);
+
+    srtfDialog.add(topPanel,      BorderLayout.NORTH);
+    srtfDialog.add(ganttWrapper,  BorderLayout.CENTER);
+    srtfDialog.add(tableScroll,   BorderLayout.SOUTH);
+    srtfDialog.setVisible(true);
+}
 }
