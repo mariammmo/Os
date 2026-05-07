@@ -56,12 +56,13 @@ class main {
         int n = sc.nextInt();
 
         System.out.println("\nChoose the scheduling algorithm:");
-        System.out.println("1. Shortest Job First (SJF)");
+        System.out.println("1. Shortest Job First (Non-Preemptive)");
         System.out.println("2. Priority Scheduling");
+        System.out.println("3. Shortest Remaining Time First (Preemptive SJF)");
 
         int choice = sc.nextInt();
 
-        // ===================== SJF =====================
+        // ===================== SJF NON PREEMPTIVE =====================
         if (choice == 1) {
 
             SJF.Process[] sjfProcesses = new SJF.Process[n];
@@ -431,6 +432,140 @@ class main {
 
                 System.out.println(
                         "\nPriority Scheduling Results saved successfully.");
+
+            } catch (IOException e) {
+
+                System.out.println("Error saving file");
+            }
+        }
+
+        // ===================== SRTF PREEMPTIVE =====================
+        else if (choice == 3) {
+
+            SJF_preemptive.Process[] p =
+                    new SJF_preemptive.Process[n];
+
+            for (int i = 0; i < n; i++) {
+
+                p[i] = new SJF_preemptive.Process();
+
+                p[i].id = i + 1;
+
+                System.out.println("\nProcess P" + p[i].id + ":");
+
+                while (true) {
+
+                    System.out.print("Arrival Time: ");
+
+                    p[i].at = sc.nextInt();
+
+                    if (p[i].at >= 0) {
+                        break;
+                    }
+
+                    System.out.println("Invalid Arrival Time!");
+                }
+
+                while (true) {
+
+                    System.out.print("Burst Time: ");
+
+                    p[i].bt = sc.nextInt();
+
+                    if (p[i].bt > 0) {
+                        break;
+                    }
+
+                    System.out.println("Invalid Burst Time!");
+                }
+
+                p[i].startedOnce = false;
+                p[i].done = false;
+            }
+
+            // تشغيل SRTF
+            SJF_preemptive.SRTF_Preemptive(p, n);
+
+            // ===================== SAVE FILE =====================
+            try {
+
+                File resultsDir = new File("results");
+
+                if (!resultsDir.exists()) {
+                    resultsDir.mkdirs();
+                }
+
+                PrintWriter writer =
+                        new PrintWriter(
+                                new FileWriter(
+                                        "results/srtf_results.txt",
+                                        true));
+
+                writer.println(
+                        "\n================ SRTF RESULTS ================\n");
+
+                writer.printf(
+                        "%-10s %-10s %-10s %-10s %-12s %-12s\n",
+                        "Process",
+                        "Arrival",
+                        "Burst",
+                        "Waiting",
+                        "Turnaround",
+                        "Response"
+                );
+
+                double totalWaiting = 0;
+                double totalTurnaround = 0;
+                double totalResponse = 0;
+
+                for (int i = 0; i < p.length; i++) {
+
+                    writer.printf(
+                            "P%-9d %-10d %-10d %-10d %-12d %-12d\n",
+                            p[i].id,
+                            p[i].at,
+                            p[i].bt,
+                            p[i].wt,
+                            p[i].tat,
+                            p[i].rt
+                    );
+
+                    totalWaiting += p[i].wt;
+                    totalTurnaround += p[i].tat;
+                    totalResponse += p[i].rt;
+                }
+
+                double avgWaiting =
+                        totalWaiting / p.length;
+
+                double avgTurnaround =
+                        totalTurnaround / p.length;
+
+                double avgResponse =
+                        totalResponse / p.length;
+
+                writer.println(
+                        "============================================================================");
+
+                writer.printf(
+                        "\nAverage Waiting Time: %.2f\n",
+                        avgWaiting
+                );
+
+                writer.printf(
+                        "Average Turnaround Time: %.2f\n",
+                        avgTurnaround
+                );
+
+                writer.printf(
+                        "Average Response Time: %.2f\n",
+                        avgResponse
+                );
+
+                writer.close();
+
+                System.out.println(
+                        "\nSRTF Results saved successfully.");
 
             } catch (IOException e) {
 
