@@ -1,3 +1,5 @@
+package osprojectfinal;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -8,6 +10,7 @@
  * @author Maya sameh
  */
 // OS_Project_Main.java
+import osprojectfinal.GanttChartPanel;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -42,98 +45,85 @@ public class OS_Project_Main extends JFrame {
     }
     
     private void initializeMainWindow() {
-        setTitle("CPU Scheduling Simulator");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
-        setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
-        
-        JPanel titlePanel = new JPanel();
-        titlePanel.setBackground(new Color(70, 130, 180));
-        JLabel titleLabel = new JLabel("CPU SCHEDULING SIMULATOR");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        titleLabel.setForeground(Color.WHITE);
-        titlePanel.add(titleLabel);
-        add(titlePanel, BorderLayout.NORTH);
-        
-        JPanel centerPanel = new JPanel(new GridBagLayout());
-        centerPanel.setBackground(new Color(240, 248, 255));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(15, 15, 15, 15);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        
-        Dimension buttonSize = new Dimension(280, 60);
-        Font buttonFont = new Font("Arial", Font.BOLD, 16);
-        
-        btnAddProcess = createStyledButton(" ADD NEW PROCESS", buttonSize, buttonFont, new Color(60, 179, 113));
-        btnAddProcess.addActionListener(e -> openInputWindow());
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        centerPanel.add(btnAddProcess, gbc);
-        
-        btnViewProcessTable = createStyledButton(" VIEW PROCESS TABLE", buttonSize, buttonFont, new Color(100, 149, 237));
-        btnViewProcessTable.addActionListener(e -> openProcessTableWindow());
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        centerPanel.add(btnViewProcessTable, gbc);
-        
-        btnRunSJF = createStyledButton(" RUN SJF ALGORITHM", buttonSize, buttonFont, new Color(255, 140, 0));
-        btnRunSJF.addActionListener(e -> GanttChartPanel.openSJFWindow(this, processList));
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        centerPanel.add(btnRunSJF, gbc);
-        
-        btnRunPriority = createStyledButton(" RUN PRIORITY ALGORITHM", buttonSize, buttonFont, new Color(218, 112, 214));
-        GanttChartPanel.openPriorityWindow(this, processList, latestPriorityResult);
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        centerPanel.add(btnRunPriority, gbc);
-        
-        btnViewComparison = createStyledButton(" VIEW COMPARISON", buttonSize, buttonFont, new Color(70, 130, 180));
-        btnViewComparison.addActionListener(e -> openComparisonWindow());
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        centerPanel.add(btnViewComparison, gbc);
-        
-        btnViewConclusion = createStyledButton(" VIEW CONCLUSION", buttonSize, buttonFont, new Color(34, 139, 34));
-        btnViewConclusion.addActionListener(e -> openConclusionWindow());
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        centerPanel.add(btnViewConclusion, gbc);
-        
-        JPanel statusPanel = new JPanel();
-        statusPanel.setBackground(Color.LIGHT_GRAY);
-        JLabel statusLabel = new JLabel("Ready | Total Processes: 0");
-        statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        statusPanel.add(statusLabel);
-        add(statusPanel, BorderLayout.SOUTH);
-        
-        add(centerPanel, BorderLayout.CENTER);
-        
-        new Timer(1000, e -> {
-            statusLabel.setText("Ready | Total Processes: " + processList.size());
-            if (processTableDialog != null && processTableDialog.isVisible() && processTableModel != null) {
-                refreshProcessTable();
-            }
-            if (comparisonDialog != null && comparisonDialog.isVisible() && comparisonModel != null) {
-                refreshComparisonTable();
-            }
-        }).start();
-        
-        setVisible(true);
-    }
-    
-    private JButton createStyledButton(String text, Dimension size, Font font, Color bgColor) {
-        JButton button = new JButton(text);
-        button.setPreferredSize(size);
-        button.setFont(font);
-        button.setBackground(bgColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return button;
-    }
+    setTitle("CPU Scheduling Simulator");
+    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    setSize(800, 700);
+    setLocationRelativeTo(null);
+    setLayout(new BorderLayout());
+
+    JPanel titlePanel = new JPanel();
+    titlePanel.setBackground(new Color(70, 130, 180));
+    JLabel titleLabel = new JLabel("CPU SCHEDULING SIMULATOR");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+    titleLabel.setForeground(Color.WHITE);
+    titlePanel.add(titleLabel);
+    add(titlePanel, BorderLayout.NORTH);
+
+    JPanel centerPanel = new JPanel(new GridBagLayout());
+    centerPanel.setBackground(new Color(240, 248, 255));
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(15, 15, 15, 15);
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+
+    Dimension buttonSize = new Dimension(280, 60);
+    Font buttonFont = new Font("Arial", Font.BOLD, 16);
+
+    btnAddProcess = createStyledButton(" ADD NEW PROCESS", buttonSize, buttonFont, new Color(60, 179, 113));
+    btnAddProcess.addActionListener(e -> openInputWindow());
+    gbc.gridx = 0; gbc.gridy = 0;
+    centerPanel.add(btnAddProcess, gbc);
+
+    btnViewProcessTable = createStyledButton(" VIEW PROCESS TABLE", buttonSize, buttonFont, new Color(100, 149, 237));
+    btnViewProcessTable.addActionListener(e -> openProcessTableWindow());
+    gbc.gridx = 0; gbc.gridy = 1;
+    centerPanel.add(btnViewProcessTable, gbc);
+
+    btnRunSJF = createStyledButton(" RUN SJF ALGORITHM", buttonSize, buttonFont, new Color(255, 140, 0));
+    btnRunSJF.addActionListener(e -> GanttChartPanel.openSJFWindow(this, processList));
+    gbc.gridx = 0; gbc.gridy = 2;
+    centerPanel.add(btnRunSJF, gbc);
+
+    btnRunPriority = createStyledButton(" RUN PRIORITY ALGORITHM", buttonSize, buttonFont, new Color(218, 112, 214));
+    btnRunPriority.addActionListener(e -> GanttChartPanel.openPriorityWindow(this, processList, latestPriorityResult));
+    gbc.gridx = 0; gbc.gridy = 3;
+    centerPanel.add(btnRunPriority, gbc);
+
+    JButton btnRunSRTF = createStyledButton(" RUN SRTF ALGORITHM", buttonSize, buttonFont, new Color(70, 180, 130));
+    btnRunSRTF.addActionListener(e -> GanttChartPanel.openSRTFWindow(this, processList));
+    gbc.gridx = 0; gbc.gridy = 4;
+    centerPanel.add(btnRunSRTF, gbc);
+
+    btnViewComparison = createStyledButton(" VIEW COMPARISON", buttonSize, buttonFont, new Color(70, 130, 180));
+    btnViewComparison.addActionListener(e -> openComparisonWindow());
+    gbc.gridx = 0; gbc.gridy = 5;
+    centerPanel.add(btnViewComparison, gbc);
+
+    btnViewConclusion = createStyledButton(" VIEW CONCLUSION", buttonSize, buttonFont, new Color(34, 139, 34));
+    btnViewConclusion.addActionListener(e -> openConclusionWindow());
+    gbc.gridx = 0; gbc.gridy = 6;
+    centerPanel.add(btnViewConclusion, gbc);
+
+    JPanel statusPanel = new JPanel();
+    statusPanel.setBackground(Color.LIGHT_GRAY);
+    JLabel statusLabel = new JLabel("Ready | Total Processes: 0");
+    statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+    statusPanel.add(statusLabel);
+    add(statusPanel, BorderLayout.SOUTH);
+
+    add(centerPanel, BorderLayout.CENTER);
+
+    new Timer(1000, e -> {
+        statusLabel.setText("Ready | Total Processes: " + processList.size());
+        if (processTableDialog != null && processTableDialog.isVisible() && processTableModel != null) {
+            refreshProcessTable();
+        }
+        if (comparisonDialog != null && comparisonDialog.isVisible() && comparisonModel != null) {
+            refreshComparisonTable();
+        }
+    }).start();
+
+    setVisible(true);
+}
     
     private void openInputWindow() {
         JDialog inputDialog = new JDialog(this, "Add New Process", true);
@@ -388,6 +378,10 @@ public class OS_Project_Main extends JFrame {
         sjfDialog.add(tableScroll, BorderLayout.SOUTH);
         
         sjfDialog.setVisible(true);
+    }
+
+    private JButton createStyledButton(String _view_process_table, Dimension buttonSize, Font buttonFont, Color color) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     
     // SJF internal process class

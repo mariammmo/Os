@@ -1,3 +1,5 @@
+package osprojectfinal;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -8,6 +10,8 @@
  * @author Maya sameh
  */
 // ResultTable.java
+import osprojectfinal.PriorityResult;
+import osprojectfinal.SJFResult;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -136,13 +140,3 @@ public class ResultTable {
     }
 }
 
-// Data classes
-class SJFResult {
-    double avgTurnaroundTime;
-    double avgWaitingTime;
-}
-
-class PriorityResult {
-    double avgTurnaroundTime;
-    double avgWaitingTime;
-}
