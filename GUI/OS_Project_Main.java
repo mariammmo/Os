@@ -1,765 +1,974 @@
-package osprojectfinal;
-
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
-/**
- *
- * @author Maya sameh
- */
-// OS_Project_Main.java
-import osprojectfinal.GanttChartPanel;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.awt.event.*;
+import java.awt.geom.*;
 import java.util.ArrayList;
 import java.util.List;
-
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.table.*;
+ 
 public class OS_Project_Main extends JFrame {
-    
-    private List<Process> processList;
-    private JButton btnAddProcess;
-    private JButton btnViewProcessTable;
-    private JButton btnRunSJF;
-    private JButton btnRunPriority;
-    private JButton btnViewComparison;
-    private JButton btnViewConclusion;
-    
-    private SJFResult latestSJFResult;
-    private PriorityResult latestPriorityResult;
-    
-    private JDialog processTableDialog;
-    private DefaultTableModel processTableModel;
-    private JDialog comparisonDialog;
-    private DefaultTableModel comparisonModel;
-    
+ 
+    // ===================== COLORS =====================
+    private static final Color BG_DARK       = new Color(13, 17, 31);
+    private static final Color BG_CARD       = new Color(22, 28, 48);
+    private static final Color BG_INPUT      = new Color(30, 38, 62);
+    private static final Color ACCENT_BLUE   = new Color(64, 156, 255);
+    private static final Color ACCENT_GREEN  = new Color(52, 211, 153);
+    private static final Color ACCENT_ORANGE = new Color(251, 146, 60);
+    private static final Color ACCENT_PURPLE = new Color(139, 92, 246);
+    private static final Color TEXT_PRIMARY  = new Color(226, 232, 240);
+    private static final Color TEXT_MUTED    = new Color(100, 116, 139);
+    private static final Color BORDER_COLOR  = new Color(45, 55, 80);
+ 
+    // ===================== STATE =====================
+    private List<Process> processList           = new ArrayList<>();
+    private SJFResult      latestSJFResult      = null;
+    private PriorityResult latestPriorityResult = null;
+ 
+    private DefaultTableModel processTableModel = null;
+    private DefaultTableModel comparisonModel   = null;
+    private JDialog processTableDialog = null;
+    private JDialog comparisonDialog   = null;
+    private JLabel  statusLabel;
+ 
+    // ===================== CONSTRUCTOR =====================
     public OS_Project_Main() {
-        processList = new ArrayList<>();
-        latestSJFResult = null;
-        latestPriorityResult = null;
         initializeMainWindow();
     }
-    
+ 
+    // ===================== MAIN WINDOW =====================
     private void initializeMainWindow() {
-    setTitle("CPU Scheduling Simulator");
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setSize(800, 700);
-    setLocationRelativeTo(null);
-    setLayout(new BorderLayout());
-
-    JPanel titlePanel = new JPanel();
-    titlePanel.setBackground(new Color(70, 130, 180));
-    JLabel titleLabel = new JLabel("CPU SCHEDULING SIMULATOR");
-    titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
-    titleLabel.setForeground(Color.WHITE);
-    titlePanel.add(titleLabel);
-    add(titlePanel, BorderLayout.NORTH);
-
-    JPanel centerPanel = new JPanel(new GridBagLayout());
-    centerPanel.setBackground(new Color(240, 248, 255));
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.insets = new Insets(15, 15, 15, 15);
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-
-    Dimension buttonSize = new Dimension(280, 60);
-    Font buttonFont = new Font("Arial", Font.BOLD, 16);
-
-    btnAddProcess = createStyledButton(" ADD NEW PROCESS", buttonSize, buttonFont, new Color(60, 179, 113));
-    btnAddProcess.addActionListener(e -> openInputWindow());
-    gbc.gridx = 0; gbc.gridy = 0;
-    centerPanel.add(btnAddProcess, gbc);
-
-    btnViewProcessTable = createStyledButton(" VIEW PROCESS TABLE", buttonSize, buttonFont, new Color(100, 149, 237));
-    btnViewProcessTable.addActionListener(e -> openProcessTableWindow());
-    gbc.gridx = 0; gbc.gridy = 1;
-    centerPanel.add(btnViewProcessTable, gbc);
-
-    btnRunSJF = createStyledButton(" RUN SJF ALGORITHM", buttonSize, buttonFont, new Color(255, 140, 0));
-    btnRunSJF.addActionListener(e -> GanttChartPanel.openSJFWindow(this, processList));
-    gbc.gridx = 0; gbc.gridy = 2;
-    centerPanel.add(btnRunSJF, gbc);
-
-    btnRunPriority = createStyledButton(" RUN PRIORITY ALGORITHM", buttonSize, buttonFont, new Color(218, 112, 214));
-    btnRunPriority.addActionListener(e -> GanttChartPanel.openPriorityWindow(this, processList, latestPriorityResult));
-    gbc.gridx = 0; gbc.gridy = 3;
-    centerPanel.add(btnRunPriority, gbc);
-
-    JButton btnRunSRTF = createStyledButton(" RUN SRTF ALGORITHM", buttonSize, buttonFont, new Color(70, 180, 130));
-    btnRunSRTF.addActionListener(e -> GanttChartPanel.openSRTFWindow(this, processList));
-    gbc.gridx = 0; gbc.gridy = 4;
-    centerPanel.add(btnRunSRTF, gbc);
-
-    btnViewComparison = createStyledButton(" VIEW COMPARISON", buttonSize, buttonFont, new Color(70, 130, 180));
-    btnViewComparison.addActionListener(e -> openComparisonWindow());
-    gbc.gridx = 0; gbc.gridy = 5;
-    centerPanel.add(btnViewComparison, gbc);
-
-    btnViewConclusion = createStyledButton(" VIEW CONCLUSION", buttonSize, buttonFont, new Color(34, 139, 34));
-    btnViewConclusion.addActionListener(e -> openConclusionWindow());
-    gbc.gridx = 0; gbc.gridy = 6;
-    centerPanel.add(btnViewConclusion, gbc);
-
-    JPanel statusPanel = new JPanel();
-    statusPanel.setBackground(Color.LIGHT_GRAY);
-    JLabel statusLabel = new JLabel("Ready | Total Processes: 0");
-    statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-    statusPanel.add(statusLabel);
-    add(statusPanel, BorderLayout.SOUTH);
-
-    add(centerPanel, BorderLayout.CENTER);
-
-    new Timer(1000, e -> {
-        statusLabel.setText("Ready | Total Processes: " + processList.size());
-        if (processTableDialog != null && processTableDialog.isVisible() && processTableModel != null) {
-            refreshProcessTable();
-        }
-        if (comparisonDialog != null && comparisonDialog.isVisible() && comparisonModel != null) {
-            refreshComparisonTable();
-        }
-    }).start();
-
-    setVisible(true);
-}
-    
-    private void openInputWindow() {
-        JDialog inputDialog = new JDialog(this, "Add New Process", true);
-        inputDialog.setSize(600, 300);
-        inputDialog.setLocationRelativeTo(this);
-        inputDialog.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        
-        JLabel lblId = new JLabel("Process ID:*");
-        JTextField txtId = new JTextField(15);
-        JLabel lblArrival = new JLabel("Arrival Time:*");
-        JTextField txtArrival = new JTextField(15);
-        JLabel lblBurst = new JLabel("Burst Time:*");
-        JTextField txtBurst = new JTextField(15);
-        JLabel lblPriority = new JLabel("Priority (Optional):");
-        JTextField txtPriority = new JTextField(15);
-        
-        JButton btnSubmit = new JButton("ADD PROCESS");
-        btnSubmit.setBackground(new Color(60, 179, 113));
-        btnSubmit.setForeground(Color.WHITE);
-        btnSubmit.setFont(new Font("Arial", Font.BOLD, 14));
-        
-        gbc.gridx = 0; gbc.gridy = 0; inputDialog.add(lblId, gbc);
-        gbc.gridx = 1; gbc.gridy = 0; inputDialog.add(txtId, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; inputDialog.add(lblArrival, gbc);
-        gbc.gridx = 1; gbc.gridy = 1; inputDialog.add(txtArrival, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; inputDialog.add(lblBurst, gbc);
-        gbc.gridx = 1; gbc.gridy = 2; inputDialog.add(txtBurst, gbc);
-        gbc.gridx = 0; gbc.gridy = 3; inputDialog.add(lblPriority, gbc);
-        gbc.gridx = 1; gbc.gridy = 3; inputDialog.add(txtPriority, gbc);
-        gbc.gridx = 1; gbc.gridy = 4; inputDialog.add(btnSubmit, gbc);
-        
-        btnSubmit.addActionListener(e -> {
-            try {
-                String id = txtId.getText().trim();
-                String arrivalStr = txtArrival.getText().trim();
-                String burstStr = txtBurst.getText().trim();
-                String priorityStr = txtPriority.getText().trim();
-                
-                if (id.isEmpty() || arrivalStr.isEmpty() || burstStr.isEmpty()) {
-                    JOptionPane.showMessageDialog(inputDialog, 
-                        "Process ID, Arrival Time, and Burst Time are required!", 
-                        "Validation Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                
-                int arrivalTime = Integer.parseInt(arrivalStr);
-                int burstTime = Integer.parseInt(burstStr);
-                Integer priority = priorityStr.isEmpty() ? null : Integer.parseInt(priorityStr);
-                
-                Process process = new Process(id, arrivalTime, burstTime, priority);
-                processList.add(process);
-                
-                JOptionPane.showMessageDialog(inputDialog, 
-                    "Process " + id + " added successfully!", 
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
-                
-                inputDialog.dispose();
-                
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(inputDialog, 
-                    "Please enter valid numbers!", 
-                    "Input Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-        
-        inputDialog.setVisible(true);
+        setTitle("CPU Scheduling Simulator");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(520, 680);
+        setLocationRelativeTo(null);
+        setResizable(false);
+ 
+        GradientPanel root = new GradientPanel();
+        root.setLayout(new BorderLayout());
+        setContentPane(root);
+ 
+        // ---- TITLE ----
+        JPanel titlePanel = new JPanel();
+        titlePanel.setOpaque(false);
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.setBorder(new EmptyBorder(30, 20, 10, 20));
+ 
+        JLabel titleLbl = new JLabel("\u2699  CPU SCHEDULING SIMULATOR", SwingConstants.CENTER);
+        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        titleLbl.setForeground(TEXT_PRIMARY);
+        titleLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+ 
+        JLabel subLbl = new JLabel("SJF  \u00b7  SRTF  \u00b7  Priority", SwingConstants.CENTER);
+        subLbl.setFont(new Font("Segoe UI", Font.ITALIC, 13));
+        subLbl.setForeground(TEXT_MUTED);
+        subLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+ 
+        titlePanel.add(titleLbl);
+        titlePanel.add(Box.createVerticalStrut(6));
+        titlePanel.add(subLbl);
+        root.add(titlePanel, BorderLayout.NORTH);
+ 
+        // ---- BUTTONS ----
+        Dimension btnSize = new Dimension(340, 52);
+ 
+        JPanel center = new JPanel();
+        center.setOpaque(false);
+        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
+        center.setBorder(new EmptyBorder(10, 60, 10, 60));
+ 
+        center.add(Box.createVerticalStrut(8));
+        center.add(menuBtn("\u2795   ADD NEW PROCESS",           ACCENT_GREEN,  btnSize, e -> openInputWindow()));
+        center.add(Box.createVerticalStrut(10));
+        center.add(menuBtn("\ud83d\udccb   VIEW PROCESS TABLE",  ACCENT_BLUE,   btnSize, e -> openProcessTableWindow()));
+        center.add(Box.createVerticalStrut(18));
+ 
+        center.add(separator("RUN ALGORITHM"));
+        center.add(Box.createVerticalStrut(10));
+ 
+        center.add(menuBtn("\u25b6   RUN SJF (Non-Preemptive)",  ACCENT_ORANGE, btnSize, e -> openSJFWindow()));
+        center.add(Box.createVerticalStrut(10));
+        center.add(menuBtn("\u25b6   RUN SRTF (Preemptive SJF)", ACCENT_GREEN,  btnSize, e -> openSRTFWindow()));
+        center.add(Box.createVerticalStrut(10));
+        center.add(menuBtn("\u25b6   RUN PRIORITY SCHEDULING",   ACCENT_PURPLE, btnSize, e -> openPriorityWindow()));
+ 
+        center.add(Box.createVerticalStrut(18));
+        center.add(separator("RESULTS"));
+        center.add(Box.createVerticalStrut(10));
+ 
+        center.add(menuBtn("\ud83d\udcca   VIEW COMPARISON",     ACCENT_BLUE,   btnSize, e -> openComparisonWindow()));
+        center.add(Box.createVerticalStrut(10));
+        center.add(menuBtn("\ud83d\udcdd   VIEW CONCLUSION",     ACCENT_GREEN,  btnSize, e -> openConclusionWindow()));
+        center.add(Box.createVerticalGlue());
+ 
+        root.add(center, BorderLayout.CENTER);
+ 
+        // ---- STATUS BAR ----
+        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 6));
+        statusPanel.setOpaque(false);
+        statusPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER_COLOR));
+        statusLabel = new JLabel("Ready  |  Total Processes: 0");
+        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        statusLabel.setForeground(TEXT_MUTED);
+        statusPanel.add(statusLabel);
+        root.add(statusPanel, BorderLayout.SOUTH);
+ 
+        new Timer(800, e -> statusLabel.setText("Ready  |  Total Processes: " + processList.size())).start();
     }
-    
+ 
+    // ===================== INPUT WINDOW =====================
+    private void openInputWindow() {
+        JDialog dlg = new JDialog(this, "Add New Process", true);
+        dlg.setSize(440, 340);
+        dlg.setLocationRelativeTo(this);
+        dlg.setResizable(false);
+ 
+        GradientPanel panel = new GradientPanel();
+        panel.setLayout(new GridBagLayout());
+        panel.setBorder(new EmptyBorder(20, 30, 20, 30));
+        dlg.setContentPane(panel);
+ 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(7, 6, 7, 6);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+ 
+        JTextField txtId       = dialogField();
+        JTextField txtArrival  = dialogField();
+        JTextField txtBurst    = dialogField();
+        JTextField txtPriority = dialogField();
+ 
+        String[] labels = {
+            "Process ID  *",
+            "Arrival Time  (\u2265 0)  *",
+            "Burst Time  (> 0)  *",
+            "Priority  (> 0, optional)"
+        };
+        JTextField[] fields = { txtId, txtArrival, txtBurst, txtPriority };
+ 
+        for (int i = 0; i < labels.length; i++) {
+            gbc.gridx = 0; gbc.gridy = i; gbc.weightx = 0.4;
+            JLabel lbl = new JLabel(labels[i]);
+            lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            lbl.setForeground(TEXT_MUTED);
+            panel.add(lbl, gbc);
+            gbc.gridx = 1; gbc.weightx = 0.6;
+            panel.add(fields[i], gbc);
+        }
+ 
+        JButton btnAdd = accentBtn("ADD PROCESS", ACCENT_GREEN);
+        gbc.gridx = 0; gbc.gridy = labels.length; gbc.gridwidth = 2;
+        gbc.insets = new Insets(18, 6, 6, 6);
+        panel.add(btnAdd, gbc);
+ 
+        ActionListener submit = e -> {
+            // ---- Validate ID ----
+            String id = txtId.getText().trim();
+            if (id.isEmpty()) { err(dlg, "Process ID cannot be empty!"); return; }
+            for (Process p : processList) {
+                if (p.getId().equalsIgnoreCase(id)) {
+                    err(dlg, "Process ID '" + id + "' already exists!"); return;
+                }
+            }
+            // ---- Validate Arrival ----
+            int arrival;
+            try {
+                arrival = Integer.parseInt(txtArrival.getText().trim());
+                if (arrival < 0) throw new NumberFormatException();
+            } catch (NumberFormatException ex) {
+                err(dlg, "Arrival Time must be an integer \u2265 0!"); return;
+            }
+            // ---- Validate Burst ----
+            int burst;
+            try {
+                burst = Integer.parseInt(txtBurst.getText().trim());
+                if (burst <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException ex) {
+                err(dlg, "Burst Time must be an integer > 0!"); return;
+            }
+            // ---- Validate Priority (optional) ----
+            Integer priority = null;
+            String prStr = txtPriority.getText().trim();
+            if (!prStr.isEmpty()) {
+                try {
+                    priority = Integer.parseInt(prStr);
+                    if (priority <= 0) throw new NumberFormatException();
+                } catch (NumberFormatException ex) {
+                    err(dlg, "Priority must be an integer > 0!"); return;
+                }
+            }
+ 
+            processList.add(new Process(id, arrival, burst, priority));
+            JOptionPane.showMessageDialog(dlg,
+                "Process " + id + " added successfully!",
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+            dlg.dispose();
+        };
+ 
+        btnAdd.addActionListener(submit);
+        for (JTextField tf : fields) tf.addActionListener(submit);
+        dlg.setVisible(true);
+    }
+ 
+    // ===================== PROCESS TABLE WINDOW =====================
     private void openProcessTableWindow() {
         processTableDialog = new JDialog(this, "Process Table", false);
-        processTableDialog.setSize(800, 400);
+        processTableDialog.setSize(640, 380);
         processTableDialog.setLocationRelativeTo(this);
-        
-        String[] columns = {"Process ID", "Arrival Time", "Burst Time", "Priority"};
-        processTableModel = new DefaultTableModel(columns, 0);
-        
-        JTable processTable = new JTable(processTableModel);
-        processTable.setFillsViewportHeight(true);
-        JScrollPane scrollPane = new JScrollPane(processTable);
-        
+ 
+        GradientPanel panel = new GradientPanel();
+        panel.setLayout(new BorderLayout());
+        processTableDialog.setContentPane(panel);
+ 
+        String[] cols = {"Process ID", "Arrival Time", "Burst Time", "Priority"};
+        processTableModel = new DefaultTableModel(cols, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+ 
+        JTable table = new JTable(processTableModel);
+        styleTable(table);
+ 
+        JButton btnRemove = accentBtn("Remove Selected", new Color(239, 68, 68));
+        btnRemove.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row < 0) { err(processTableDialog, "Please select a row to remove!"); return; }
+            String rid = (String) processTableModel.getValueAt(row, 0);
+            processList.remove(row);
+            processTableModel.removeRow(row);
+            statusLabel.setText("Removed: " + rid + "  |  Total: " + processList.size());
+        });
+ 
+        JPanel bot = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 8));
+        bot.setOpaque(false);
+        bot.add(btnRemove);
+ 
+        panel.add(darkScroll(table), BorderLayout.CENTER);
+        panel.add(bot, BorderLayout.SOUTH);
+ 
         refreshProcessTable();
-        
-        processTableDialog.setLayout(new BorderLayout());
-        processTableDialog.add(scrollPane, BorderLayout.CENTER);
-        
         processTableDialog.setVisible(true);
     }
-    
+ 
     private void refreshProcessTable() {
-        if (processTableModel != null) {
-            processTableModel.setRowCount(0);
-            for (Process p : processList) {
-                Object[] row = {p.getId(), p.getArrivalTime(), p.getBurstTime(), 
-                               p.getPriority() != null ? p.getPriority() : "N/A"};
-                processTableModel.addRow(row);
-            }
+        if (processTableModel == null) return;
+        processTableModel.setRowCount(0);
+        for (Process p : processList) {
+            processTableModel.addRow(new Object[]{
+                p.getId(), p.getArrivalTime(), p.getBurstTime(),
+                p.getPriority() != null ? p.getPriority() : "\u2014"
+            });
         }
     }
-    
-    // ========== SJF WINDOW (with Response Time) ==========
+ 
+    // ===================== SJF ALGORITHM WINDOW =====================
     private void openSJFWindow() {
         if (processList.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Please add at least one process first!", 
-                "No Processes", JOptionPane.WARNING_MESSAGE);
-            return;
+            err(this, "Please add at least one process first!"); return;
         }
-        
-        JDialog sjfDialog = new JDialog(this, "SJF Scheduling Algorithm", false);
-        sjfDialog.setSize(1000, 750);
-        sjfDialog.setLocationRelativeTo(this);
-        sjfDialog.setLayout(new BorderLayout());
-        
-        JPanel chartPanel = new JPanel();
-        chartPanel.setBackground(Color.LIGHT_GRAY);
-        chartPanel.setPreferredSize(new Dimension(0, 250));
-        chartPanel.add(new JLabel("SJF GANTT CHART - PLACEHOLDER"));
-        chartPanel.setBorder(BorderFactory.createTitledBorder("Gantt Chart"));
-        
-        // Table columns: Response Time, Turnaround Time, Waiting Time
-        String[] columns = {"Response Time", "Turnaround Time", "Waiting Time"};
-        DefaultTableModel tableModel = new DefaultTableModel(columns, 0);
-        JTable outputTable = new JTable(tableModel);
-        outputTable.setFillsViewportHeight(true);
-        outputTable.setRowHeight(30);
-        
-        JTableHeader header = outputTable.getTableHeader();
-        header.setFont(new Font("Arial", Font.BOLD, 14));
-        header.setBackground(new Color(70, 130, 180));
-        header.setForeground(Color.WHITE);
-        
-        JScrollPane tableScroll = new JScrollPane(outputTable);
-        
-        JButton btnRun = new JButton("RUN SJF");
-        btnRun.setFont(new Font("Arial", Font.BOLD, 16));
-        btnRun.setBackground(new Color(255, 140, 0));
-        btnRun.setForeground(Color.WHITE);
-        
-        btnRun.addActionListener(e -> {
-            tableModel.setRowCount(0);
-            
-            // Convert to internal SJF process objects
-            int n = processList.size();
-            SJFProcess[] procs = new SJFProcess[n];
+ 
+        int n = processList.size();
+ 
+        // --- Run SJF Non-Preemptive ---
+        int[] at  = new int[n], bt  = new int[n];
+        int[] wt  = new int[n], tat = new int[n], rt = new int[n];
+        boolean[] done = new boolean[n];
+        List<int[]> ganttBlocks = new ArrayList<>(); // {processIndex, start, end}
+ 
+        for (int i = 0; i < n; i++) {
+            at[i] = processList.get(i).getArrivalTime();
+            bt[i] = processList.get(i).getBurstTime();
+        }
+ 
+        int currentTime = 0, completed = 0;
+        while (completed < n) {
+            int shortest = -1;
             for (int i = 0; i < n; i++) {
-                Process p = processList.get(i);
-                procs[i] = new SJFProcess();
-                procs[i].id = p.getId();
-                procs[i].at = p.getArrivalTime();
-                procs[i].bt = p.getBurstTime();
-                procs[i].remaining = p.getBurstTime();
-                procs[i].completed = false;
-                procs[i].startTime = -1;
-            }
-            
-            // Non-preemptive SJF
-            int currentTime = 0;
-            int completed = 0;
-            while (completed < n) {
-                int shortestIdx = -1;
-                int shortestBurst = Integer.MAX_VALUE;
-                for (int i = 0; i < n; i++) {
-                    if (!procs[i].completed && procs[i].at <= currentTime) {
-                        if (procs[i].bt < shortestBurst) {
-                            shortestBurst = procs[i].bt;
-                            shortestIdx = i;
-                        } else if (procs[i].bt == shortestBurst && shortestIdx != -1) {
-                            if (procs[i].at < procs[shortestIdx].at) {
-                                shortestIdx = i;
-                            }
-                        }
+                if (!done[i] && at[i] <= currentTime) {
+                    if (shortest == -1 || bt[i] < bt[shortest]
+                            || (bt[i] == bt[shortest] && at[i] < at[shortest])) {
+                        shortest = i;
                     }
                 }
-                if (shortestIdx == -1) {
-                    currentTime++;
-                    continue;
+            }
+            if (shortest == -1) { currentTime++; continue; }
+ 
+            rt[shortest]  = currentTime - at[shortest];
+            ganttBlocks.add(new int[]{shortest, currentTime, currentTime + bt[shortest]});
+            currentTime  += bt[shortest];
+            tat[shortest] = currentTime - at[shortest];
+            wt[shortest]  = tat[shortest] - bt[shortest];
+            done[shortest] = true;
+            completed++;
+        }
+ 
+        double avgWT = 0, avgTAT = 0, avgRT = 0;
+        for (int i = 0; i < n; i++) { avgWT += wt[i]; avgTAT += tat[i]; avgRT += rt[i]; }
+        avgWT /= n; avgTAT /= n; avgRT /= n;
+ 
+        latestSJFResult = new SJFResult();
+        latestSJFResult.avgWaitingTime    = avgWT;
+        latestSJFResult.avgTurnaroundTime = avgTAT;
+        latestSJFResult.avgResponseTime   = avgRT;
+ 
+        // --- Build result rows ---
+        String[] cols = {"Process ID", "Arrival", "Burst", "Waiting", "Turnaround", "Response"};
+        Object[][] rows = new Object[n + 1][6];
+        for (int i = 0; i < n; i++) {
+            rows[i] = new Object[]{processList.get(i).getId(), at[i], bt[i], wt[i], tat[i], rt[i]};
+        }
+        rows[n] = new Object[]{"Average", "—", "—",
+            String.format("%.2f", avgWT), String.format("%.2f", avgTAT), String.format("%.2f", avgRT)};
+ 
+        showResultWindow("SJF (Non-Preemptive) Results", cols, rows, ganttBlocks, ACCENT_ORANGE);
+    }
+ 
+    // ===================== SRTF ALGORITHM WINDOW =====================
+    private void openSRTFWindow() {
+        if (processList.isEmpty()) {
+            err(this, "Please add at least one process first!"); return;
+        }
+ 
+        int n = processList.size();
+        int[] at   = new int[n], bt  = new int[n], rem = new int[n];
+        int[] wt   = new int[n], tat = new int[n], rt  = new int[n];
+        boolean[] done        = new boolean[n];
+        boolean[] startedOnce = new boolean[n];
+        List<int[]> ganttBlocks = new ArrayList<>(); // {processIndex, start, end}
+ 
+        for (int i = 0; i < n; i++) {
+            at[i]  = processList.get(i).getArrivalTime();
+            bt[i]  = processList.get(i).getBurstTime();
+            rem[i] = bt[i];
+        }
+ 
+        int currentTime = 0, completed = 0;
+        int lastIdx = -1, blockStart = 0;
+ 
+        while (completed < n) {
+            int shortest = -1;
+            for (int i = 0; i < n; i++) {
+                if (!done[i] && at[i] <= currentTime) {
+                    if (shortest == -1 || rem[i] < rem[shortest]
+                            || (rem[i] == rem[shortest] && at[i] < at[shortest])) {
+                        shortest = i;
+                    }
                 }
-                SJFProcess cur = procs[shortestIdx];
-                if (cur.startTime == -1) {
-                    cur.startTime = currentTime;
+            }
+            if (shortest == -1) {
+                if (lastIdx != -1) {
+                    ganttBlocks.add(new int[]{lastIdx, blockStart, currentTime});
+                    lastIdx = -1;
                 }
-                currentTime += cur.bt;
-                cur.completionTime = currentTime;
-                cur.turnaround = cur.completionTime - cur.at;
-                cur.waiting = cur.turnaround - cur.bt;
-                cur.response = cur.startTime - cur.at;
-                cur.completed = true;
+                currentTime++; continue;
+            }
+            if (!startedOnce[shortest]) {
+                rt[shortest]         = currentTime - at[shortest];
+                startedOnce[shortest] = true;
+            }
+            if (shortest != lastIdx) {
+                if (lastIdx != -1) ganttBlocks.add(new int[]{lastIdx, blockStart, currentTime});
+                blockStart = currentTime;
+                lastIdx    = shortest;
+            }
+            rem[shortest]--;
+            currentTime++;
+            if (rem[shortest] == 0) {
+                done[shortest] = true;
                 completed++;
+                tat[shortest] = currentTime - at[shortest];
+                wt[shortest]  = tat[shortest] - bt[shortest];
+                ganttBlocks.add(new int[]{shortest, blockStart, currentTime});
+                lastIdx = -1;
             }
-            
-            // Calculate averages
-            double totalResponse = 0, totalTurnaround = 0, totalWaiting = 0;
-            for (SJFProcess p : procs) {
-                totalResponse += p.response;
-                totalTurnaround += p.turnaround;
-                totalWaiting += p.waiting;
-            }
-            double avgResponse = totalResponse / n;
-            double avgTurnaround = totalTurnaround / n;
-            double avgWaiting = totalWaiting / n;
-            
-            // Populate table: each process gets white row + blue row with averages
-            for (SJFProcess p : procs) {
-                Object[] resultRow = {p.response, p.turnaround, p.waiting};
-                tableModel.addRow(resultRow);
-                Object[] avgRow = {
-                    String.format("Avg: %.2f", avgResponse),
-                    String.format("Avg: %.2f", avgTurnaround),
-                    String.format("Avg: %.2f", avgWaiting)
-                };
-                tableModel.addRow(avgRow);
-            }
-            
-            // Blue background for average rows
-            outputTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value,
-                        boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    if (row % 2 == 1) {
-                        c.setBackground(new Color(173, 216, 230));
-                        c.setForeground(Color.BLACK);
-                        setFont(new Font("Arial", Font.BOLD, 12));
-                    } else {
-                        c.setBackground(row % 4 == 0 ? Color.WHITE : new Color(245, 245, 245));
-                        c.setForeground(Color.BLACK);
-                        setFont(new Font("Arial", Font.PLAIN, 12));
-                    }
-                    return c;
-                }
-            });
-            
-            latestSJFResult = new SJFResult();
-            latestSJFResult.avgResponseTime = avgResponse;
-            latestSJFResult.avgTurnaroundTime = avgTurnaround;
-            latestSJFResult.avgWaitingTime = avgWaiting;
-            
-            JOptionPane.showMessageDialog(sjfDialog, 
-                "SJF Algorithm executed!\nAverage Response Time: " + String.format("%.2f", avgResponse) +
-                "\nAverage Waiting Time: " + String.format("%.2f", avgWaiting) +
-                "\nAverage Turnaround Time: " + String.format("%.2f", avgTurnaround), 
-                "SJF Complete", JOptionPane.INFORMATION_MESSAGE);
-        });
-        
-        JPanel topPanel = new JPanel();
-        topPanel.add(btnRun);
-        
-        sjfDialog.add(topPanel, BorderLayout.NORTH);
-        sjfDialog.add(chartPanel, BorderLayout.CENTER);
-        sjfDialog.add(tableScroll, BorderLayout.SOUTH);
-        
-        sjfDialog.setVisible(true);
+        }
+ 
+        double avgWT = 0, avgTAT = 0, avgRT = 0;
+        for (int i = 0; i < n; i++) { avgWT += wt[i]; avgTAT += tat[i]; avgRT += rt[i]; }
+        avgWT /= n; avgTAT /= n; avgRT /= n;
+ 
+        String[] cols = {"Process ID", "Arrival", "Burst", "Waiting", "Turnaround", "Response"};
+        Object[][] rows = new Object[n + 1][6];
+        for (int i = 0; i < n; i++) {
+            rows[i] = new Object[]{processList.get(i).getId(), at[i], bt[i], wt[i], tat[i], rt[i]};
+        }
+        rows[n] = new Object[]{"Average", "—", "—",
+            String.format("%.2f", avgWT), String.format("%.2f", avgTAT), String.format("%.2f", avgRT)};
+ 
+        showResultWindow("SRTF (Preemptive SJF) Results", cols, rows, ganttBlocks, ACCENT_GREEN);
     }
-
-    private JButton createStyledButton(String _view_process_table, Dimension buttonSize, Font buttonFont, Color color) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-    
-    // SJF internal process class
-    static class SJFProcess {
-        String id;
-        int at, bt, remaining, startTime, completionTime, turnaround, waiting, response;
-        boolean completed;
-    }
-    
-    // ========== PRIORITY WINDOW (with Response Time) ==========
+ 
+    // ===================== PRIORITY ALGORITHM WINDOW =====================
     private void openPriorityWindow() {
         if (processList.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Please add at least one process first!", 
-                "No Processes", JOptionPane.WARNING_MESSAGE);
-            return;
+            err(this, "Please add at least one process first!"); return;
         }
-        
-        // Check priorities exist
-        boolean missingPriority = false;
         for (Process p : processList) {
             if (p.getPriority() == null) {
-                missingPriority = true;
-                break;
+                err(this, "All processes must have a priority value!\nPlease add priority when entering processes.");
+                return;
             }
         }
-        if (missingPriority) {
-            JOptionPane.showMessageDialog(this, 
-                "Priority algorithm requires all processes to have a priority value.\n" +
-                "Please add or edit processes to include priority (lower number = higher priority).", 
-                "Missing Priority", JOptionPane.WARNING_MESSAGE);
-            return;
+ 
+        int n = processList.size();
+        int[] at   = new int[n], bt  = new int[n], pri = new int[n];
+        int[] rem  = new int[n], wt  = new int[n], tat = new int[n], rt = new int[n];
+        boolean[] done        = new boolean[n];
+        boolean[] startedOnce = new boolean[n];
+        List<int[]> ganttBlocks = new ArrayList<>();
+ 
+        for (int i = 0; i < n; i++) {
+            at[i]  = processList.get(i).getArrivalTime();
+            bt[i]  = processList.get(i).getBurstTime();
+            pri[i] = processList.get(i).getPriority();
+            rem[i] = bt[i];
         }
-        
-        JDialog priorityDialog = new JDialog(this, "Priority Scheduling Algorithm", false);
-        priorityDialog.setSize(1000, 750);
-        priorityDialog.setLocationRelativeTo(this);
-        priorityDialog.setLayout(new BorderLayout());
-        
-        JPanel chartPanel = new JPanel();
-        chartPanel.setBackground(Color.LIGHT_GRAY);
-        chartPanel.setPreferredSize(new Dimension(0, 250));
-        chartPanel.add(new JLabel("Priority GANTT CHART - PLACEHOLDER"));
-        chartPanel.setBorder(BorderFactory.createTitledBorder("Gantt Chart"));
-        
-        String[] columns = {"Response Time", "Turnaround Time", "Waiting Time"};
-        DefaultTableModel tableModel = new DefaultTableModel(columns, 0);
-        JTable outputTable = new JTable(tableModel);
-        outputTable.setFillsViewportHeight(true);
-        outputTable.setRowHeight(30);
-        
-        JTableHeader header = outputTable.getTableHeader();
-        header.setFont(new Font("Arial", Font.BOLD, 14));
-        header.setBackground(new Color(70, 130, 180));
-        header.setForeground(Color.WHITE);
-        
-        JScrollPane tableScroll = new JScrollPane(outputTable);
-        
-        JButton btnRun = new JButton("RUN PRIORITY");
-        btnRun.setFont(new Font("Arial", Font.BOLD, 16));
-        btnRun.setBackground(new Color(218, 112, 214));
-        btnRun.setForeground(Color.WHITE);
-        
-        btnRun.addActionListener(e -> {
-            tableModel.setRowCount(0);
-            
-            int n = processList.size();
-            PriorityProcess[] procs = new PriorityProcess[n];
+ 
+        int currentTime = 0, completed = 0;
+        int lastIdx = -1, blockStart = 0;
+ 
+        while (completed < n) {
+            int best = -1;
             for (int i = 0; i < n; i++) {
-                Process p = processList.get(i);
-                procs[i] = new PriorityProcess();
-                procs[i].arrivalTime = p.getArrivalTime();
-                procs[i].burstTime = p.getBurstTime();
-                procs[i].priority = p.getPriority();
-                procs[i].remainingTime = p.getBurstTime();
-                procs[i].isCompleted = false;
-                procs[i].startTime = -1;
-            }
-            
-            // Preemptive priority scheduling (lower number = higher priority)
-            int currentTime = 0;
-            int completed = 0;
-            while (completed < n) {
-                PriorityProcess bestProcess = null;
-                int minPriority = Integer.MAX_VALUE;
-                
-                for (PriorityProcess pp : procs) {
-                    if (pp.arrivalTime <= currentTime && !pp.isCompleted) {
-                        if (pp.priority < minPriority) {
-                            minPriority = pp.priority;
-                            bestProcess = pp;
-                        } else if (pp.priority == minPriority && bestProcess != null) {
-                            if (pp.arrivalTime < bestProcess.arrivalTime) {
-                                bestProcess = pp;
-                            }
-                        }
+                if (!done[i] && at[i] <= currentTime) {
+                    if (best == -1 || pri[i] < pri[best]
+                            || (pri[i] == pri[best] && at[i] < at[best])) {
+                        best = i;
                     }
                 }
-                if (bestProcess == null) {
-                    currentTime++;
-                    continue;
-                }
-                if (bestProcess.startTime == -1) {
-                    bestProcess.startTime = currentTime;
-                    bestProcess.responseTime = bestProcess.startTime - bestProcess.arrivalTime;
-                }
-                bestProcess.remainingTime--;
-                currentTime++;
-                if (bestProcess.remainingTime == 0) {
-                    bestProcess.isCompleted = true;
-                    completed++;
-                    bestProcess.completionTime = currentTime;
-                    bestProcess.turnaroundTime = bestProcess.completionTime - bestProcess.arrivalTime;
-                    bestProcess.waitingTime = bestProcess.turnaroundTime - bestProcess.burstTime;
-                }
             }
-            
-            // Calculate averages
-            double totalResponse = 0, totalTurnaround = 0, totalWaiting = 0;
-            for (PriorityProcess pp : procs) {
-                totalResponse += pp.responseTime;
-                totalTurnaround += pp.turnaroundTime;
-                totalWaiting += pp.waitingTime;
-            }
-            double avgResponse = totalResponse / n;
-            double avgTurnaround = totalTurnaround / n;
-            double avgWaiting = totalWaiting / n;
-            
-            // Populate table
-            for (PriorityProcess pp : procs) {
-                Object[] resultRow = {pp.responseTime, pp.turnaroundTime, pp.waitingTime};
-                tableModel.addRow(resultRow);
-                Object[] avgRow = {
-                    String.format("Avg: %.2f", avgResponse),
-                    String.format("Avg: %.2f", avgTurnaround),
-                    String.format("Avg: %.2f", avgWaiting)
-                };
-                tableModel.addRow(avgRow);
-            }
-            
-            outputTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value,
-                        boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    if (row % 2 == 1) {
-                        c.setBackground(new Color(173, 216, 230));
-                        c.setForeground(Color.BLACK);
-                        setFont(new Font("Arial", Font.BOLD, 12));
-                    } else {
-                        c.setBackground(row % 4 == 0 ? Color.WHITE : new Color(245, 245, 245));
-                        c.setForeground(Color.BLACK);
-                        setFont(new Font("Arial", Font.PLAIN, 12));
-                    }
-                    return c;
+            if (best == -1) {
+                if (lastIdx != -1) {
+                    ganttBlocks.add(new int[]{lastIdx, blockStart, currentTime});
+                    lastIdx = -1;
                 }
-            });
-            
-            latestPriorityResult = new PriorityResult();
-            latestPriorityResult.avgResponseTime = avgResponse;
-            latestPriorityResult.avgTurnaroundTime = avgTurnaround;
-            latestPriorityResult.avgWaitingTime = avgWaiting;
-            
-            JOptionPane.showMessageDialog(priorityDialog, 
-                "Priority Algorithm executed!\nAverage Response Time: " + String.format("%.2f", avgResponse) +
-                "\nAverage Waiting Time: " + String.format("%.2f", avgWaiting) +
-                "\nAverage Turnaround Time: " + String.format("%.2f", avgTurnaround), 
-                "Priority Complete", JOptionPane.INFORMATION_MESSAGE);
+                currentTime++; continue;
+            }
+            if (!startedOnce[best]) {
+                rt[best]         = currentTime - at[best];
+                startedOnce[best] = true;
+            }
+            if (best != lastIdx) {
+                if (lastIdx != -1) ganttBlocks.add(new int[]{lastIdx, blockStart, currentTime});
+                blockStart = currentTime;
+                lastIdx    = best;
+            }
+            rem[best]--;
+            currentTime++;
+            if (rem[best] == 0) {
+                done[best] = true;
+                completed++;
+                tat[best] = currentTime - at[best];
+                wt[best]  = tat[best] - bt[best];
+                ganttBlocks.add(new int[]{best, blockStart, currentTime});
+                lastIdx = -1;
+            }
+        }
+ 
+        double avgWT = 0, avgTAT = 0, avgRT = 0;
+        for (int i = 0; i < n; i++) { avgWT += wt[i]; avgTAT += tat[i]; avgRT += rt[i]; }
+        avgWT /= n; avgTAT /= n; avgRT /= n;
+ 
+        latestPriorityResult = new PriorityResult();
+        latestPriorityResult.avgWaitingTime    = avgWT;
+        latestPriorityResult.avgTurnaroundTime = avgTAT;
+        latestPriorityResult.avgResponseTime   = avgRT;
+ 
+        String[] cols = {"Process ID", "Arrival", "Burst", "Priority", "Waiting", "Turnaround", "Response"};
+        Object[][] rows = new Object[n + 1][7];
+        for (int i = 0; i < n; i++) {
+            rows[i] = new Object[]{processList.get(i).getId(), at[i], bt[i], pri[i], wt[i], tat[i], rt[i]};
+        }
+        rows[n] = new Object[]{"Average", "—", "—", "—",
+            String.format("%.2f", avgWT), String.format("%.2f", avgTAT), String.format("%.2f", avgRT)};
+ 
+        showResultWindow("Priority Scheduling Results", cols, rows, ganttBlocks, ACCENT_PURPLE);
+    }
+ 
+    // ===================== SHARED RESULT WINDOW =====================
+    private void showResultWindow(String title, String[] cols, Object[][] rows,
+                                  List<int[]> ganttBlocks, Color accentColor) {
+ 
+        JDialog dlg = new JDialog(this, title, false);
+        dlg.setSize(900, 620);
+        dlg.setLocationRelativeTo(this);
+ 
+        GradientPanel panel = new GradientPanel();
+        panel.setLayout(new BorderLayout(0, 8));
+        panel.setBorder(new EmptyBorder(12, 12, 12, 12));
+        dlg.setContentPane(panel);
+ 
+        // ---- GANTT CHART ----
+        GanttPanel gantt = new GanttPanel(ganttBlocks, processList, accentColor);
+        gantt.setPreferredSize(new Dimension(0, 110));
+        JPanel ganttWrapper = new JPanel(new BorderLayout());
+        ganttWrapper.setOpaque(false);
+        ganttWrapper.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(accentColor, 1, true),
+            "Gantt Chart",
+            javax.swing.border.TitledBorder.LEFT,
+            javax.swing.border.TitledBorder.TOP,
+            new Font("Segoe UI", Font.BOLD, 12),
+            accentColor));
+        ganttWrapper.add(gantt, BorderLayout.CENTER);
+        panel.add(ganttWrapper, BorderLayout.NORTH);
+ 
+        // ---- TABLE ----
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        for (Object[] row : rows) model.addRow(row);
+ 
+        JTable table = new JTable(model);
+        styleTable(table);
+        // highlight last (average) row
+        int lastRow = rows.length - 1;
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable t, Object v,
+                    boolean sel, boolean foc, int row, int col) {
+                super.getTableCellRendererComponent(t, v, sel, foc, row, col);
+                setHorizontalAlignment(SwingConstants.CENTER);
+                if (row == lastRow) {
+                    setBackground(new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 60));
+                    setFont(new Font("Segoe UI", Font.BOLD, 13));
+                    setForeground(TEXT_PRIMARY);
+                } else {
+                    setBackground(row % 2 == 0 ? BG_CARD : new Color(28, 36, 58));
+                    setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                    setForeground(TEXT_PRIMARY);
+                }
+                setBorder(new EmptyBorder(0, 8, 0, 8));
+                return this;
+            }
         });
-        
-        JPanel topPanel = new JPanel();
-        topPanel.add(btnRun);
-        
-        priorityDialog.add(topPanel, BorderLayout.NORTH);
-        priorityDialog.add(chartPanel, BorderLayout.CENTER);
-        priorityDialog.add(tableScroll, BorderLayout.SOUTH);
-        
-        priorityDialog.setVisible(true);
+ 
+        panel.add(darkScroll(table), BorderLayout.CENTER);
+        dlg.setVisible(true);
     }
-    
-    // Internal class for priority processes
-    static class PriorityProcess {
-        int arrivalTime, burstTime, priority, remainingTime, startTime, responseTime, completionTime, turnaroundTime, waitingTime;
-        boolean isCompleted;
+ 
+    // ===================== GANTT CHART PANEL =====================
+    static class GanttPanel extends JPanel {
+        private final List<int[]>  blocks;
+        private final List<Process> processes;
+        private final Color accentColor;
+ 
+        private static final Color[] COLORS = {
+            new Color(100, 149, 237), new Color(52, 211, 153),
+            new Color(251, 146, 60),  new Color(139, 92, 246),
+            new Color(248, 113, 113), new Color(251, 191, 36),
+            new Color(34, 211, 238),  new Color(167, 139, 250)
+        };
+ 
+        GanttPanel(List<int[]> blocks, List<Process> processes, Color accentColor) {
+            this.blocks      = blocks;
+            this.processes   = processes;
+            this.accentColor = accentColor;
+            setOpaque(false);
+        }
+ 
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (blocks.isEmpty()) return;
+ 
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+ 
+            int PAD   = 20;
+            int BAR_Y = 15;
+            int BAR_H = 40;
+            int drawW = getWidth() - PAD * 2;
+            int lastTime = blocks.get(blocks.size() - 1)[2]; // end of last block
+            if (lastTime == 0) lastTime = 1;
+ 
+            for (int[] block : blocks) {
+                int idx   = block[0];
+                int start = block[1];
+                int end   = block[2];
+ 
+                int x = PAD + (int)((double) start / lastTime * drawW);
+                int w = Math.max(2, (int)((double)(end - start) / lastTime * drawW));
+ 
+                Color c = COLORS[idx % COLORS.length];
+                g2.setColor(c);
+                g2.fillRoundRect(x, BAR_Y, w, BAR_H, 6, 6);
+                g2.setColor(new Color(0, 0, 0, 80));
+                g2.setStroke(new BasicStroke(1f));
+                g2.drawRoundRect(x, BAR_Y, w, BAR_H, 6, 6);
+ 
+                // label
+                if (w > 18) {
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                    g2.setColor(Color.WHITE);
+                    FontMetrics fm  = g2.getFontMetrics();
+                    String lbl      = (idx < processes.size()) ? processes.get(idx).getId() : "P" + idx;
+                    int tx          = x + (w - fm.stringWidth(lbl)) / 2;
+                    int ty          = BAR_Y + (BAR_H + fm.getAscent() - fm.getDescent()) / 2;
+                    g2.drawString(lbl, tx, ty);
+                }
+            }
+ 
+            // time axis ticks
+            g2.setColor(new Color(100, 116, 139));
+            g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+            g2.setStroke(new BasicStroke(1f));
+            int axisY = BAR_Y + BAR_H;
+            g2.drawLine(PAD, axisY, PAD + drawW, axisY);
+ 
+            java.util.Set<Integer> times = new java.util.TreeSet<>();
+            for (int[] b : blocks) { times.add(b[1]); times.add(b[2]); }
+            FontMetrics fm = g2.getFontMetrics();
+            int prevX = -99;
+            for (int t : times) {
+                int x = PAD + (int)((double) t / lastTime * drawW);
+                g2.drawLine(x, axisY, x, axisY + 4);
+                String lbl = String.valueOf(t);
+                int lx = x - fm.stringWidth(lbl) / 2;
+                if (lx > prevX + 4) {
+                    g2.drawString(lbl, lx, axisY + 14);
+                    prevX = lx + fm.stringWidth(lbl);
+                }
+            }
+        }
     }
-    
-    // ========== COMPARISON WINDOW ==========
+ 
+    // ===================== COMPARISON WINDOW =====================
     private void openComparisonWindow() {
-        comparisonDialog = new JDialog(this, "Algorithm Comparison - 5 Scenarios", false);
-        comparisonDialog.setSize(1000, 600);
+        comparisonDialog = new JDialog(this, "Algorithm Comparison \u2014 5 Scenarios", false);
+        comparisonDialog.setSize(980, 460);
         comparisonDialog.setLocationRelativeTo(this);
-        
-        String[] columns = {"Scenario", "SJF", "Priority", "Better Algorithm"};
-        comparisonModel = new DefaultTableModel(columns, 0);
-        JTable comparisonTable = new JTable(comparisonModel);
-        comparisonTable.setFillsViewportHeight(true);
-        comparisonTable.setRowHeight(80);
-        comparisonTable.setFont(new Font("Arial", Font.PLAIN, 14));
-        
-        JTableHeader header = comparisonTable.getTableHeader();
-        header.setFont(new Font("Arial", Font.BOLD, 16));
-        header.setBackground(new Color(70, 130, 180));
-        header.setForeground(Color.WHITE);
-        
-        comparisonTable.getColumnModel().getColumn(0).setPreferredWidth(200);
-        comparisonTable.getColumnModel().getColumn(1).setPreferredWidth(300);
-        comparisonTable.getColumnModel().getColumn(2).setPreferredWidth(300);
-        comparisonTable.getColumnModel().getColumn(3).setPreferredWidth(150);
-        
-        JScrollPane scrollPane = new JScrollPane(comparisonTable);
-        scrollPane.setBorder(null);
-        
+ 
+        GradientPanel panel = new GradientPanel();
+        panel.setLayout(new BorderLayout());
+        comparisonDialog.setContentPane(panel);
+ 
+        String[] cols = {"Scenario", "SJF", "Priority", "Better"};
+        comparisonModel = new DefaultTableModel(cols, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+ 
+        JTable table = new JTable(comparisonModel) {
+            // make rows taller for wrapped text
+            public int getRowHeight(int row) { return 58; }
+        };
+        styleTable(table);
+        table.getColumnModel().getColumn(0).setPreferredWidth(180);
+        table.getColumnModel().getColumn(1).setPreferredWidth(310);
+        table.getColumnModel().getColumn(2).setPreferredWidth(310);
+        table.getColumnModel().getColumn(3).setPreferredWidth(120);
+ 
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable t, Object v,
+                    boolean sel, boolean foc, int row, int col) {
+                JTextArea area = new JTextArea(v != null ? v.toString() : "");
+                area.setLineWrap(true);
+                area.setWrapStyleWord(true);
+                area.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                area.setBackground(row % 2 == 0 ? BG_CARD : new Color(28, 36, 58));
+                area.setForeground(TEXT_PRIMARY);
+                area.setBorder(new EmptyBorder(6, 10, 6, 10));
+                return area;
+            }
+        });
+ 
+        panel.add(darkScroll(table), BorderLayout.CENTER);
         refreshComparisonTable();
-        
-        comparisonDialog.setLayout(new BorderLayout());
-        comparisonDialog.add(scrollPane, BorderLayout.CENTER);
-        
         comparisonDialog.setVisible(true);
     }
-    
+ 
     private void refreshComparisonTable() {
-        if (comparisonModel != null) {
-            comparisonModel.setRowCount(0);
-            
-            // Get numeric averages if available
-            String sjfResponse = (latestSJFResult != null) ? String.format("%.2f", latestSJFResult.avgResponseTime) : "Not calculated";
-            String priResponse = (latestPriorityResult != null) ? String.format("%.2f", latestPriorityResult.avgResponseTime) : "Not calculated";
-            String sjfWaiting = (latestSJFResult != null) ? String.format("%.2f", latestSJFResult.avgWaitingTime) : "Not calculated";
-            String priWaiting = (latestPriorityResult != null) ? String.format("%.2f", latestPriorityResult.avgWaitingTime) : "Not calculated";
-            String sjfTurnaround = (latestSJFResult != null) ? String.format("%.2f", latestSJFResult.avgTurnaroundTime) : "Not calculated";
-            String priTurnaround = (latestPriorityResult != null) ? String.format("%.2f", latestPriorityResult.avgTurnaroundTime) : "Not calculated";
-            
-            // Scenario descriptions
-            String scenario1_SJF = "SJF ignores priority. A short job with low priority will still run quickly because SJF selects by CPU burst length, not priority.";
-            String scenario1_Priority = "Priority scheduling may starve a short job with low priority if higher priority (smaller number) processes keep arriving.";
-            String scenario1_Better = "SJF";
-            
-            String scenario2_SJF = "SJF may delay a long job with high priority because it always picks the shortest burst first. The high priority is ignored.";
-            String scenario2_Priority = "Priority scheduling will run the long job immediately if it has the highest priority (smallest number), regardless of its burst length.";
-            String scenario2_Better = "Priority ";
-            
-            String scenario3_SJF = sjfWaiting + sjfTurnaround;
-            String scenario3_Priority = priWaiting + priTurnaround;
-            String scenario3_Better = getBetterOverall();
-            
-            String scenario4_SJF = "SJF gives good response to short jobs but may ignore urgency. Urgent (high priority) long jobs can be delayed.";
-            String scenario4_Priority = "Priority scheduling is designed exactly for urgent processes. Higher priority (smaller number) runs immediately.";
-            String scenario4_Better = "Priority ";
-            
-            String scenario5_SJF = "SJF can cause starvation for long jobs if short jobs keep arriving.";
-            String scenario5_Priority = "Priority can cause starvation for low priority processes if higher priority processes continuously arrive.";
-            String scenario5_Better = "Both ";
-            
-            Object[][] scenarios = {
-                {"1. Short job has low priority", scenario1_SJF, scenario1_Priority, scenario1_Better},
-                {"2. Long job has high priority", scenario2_SJF, scenario2_Priority, scenario2_Better},
-                {"3. Average WT / TAT", scenario3_SJF, scenario3_Priority, scenario3_Better},
-                {"4. Urgent processes ", scenario4_SJF, scenario4_Priority, scenario4_Better},
-                {"5. Fairness", scenario5_SJF, scenario5_Priority, scenario5_Better}
-            };
-            
-            for (Object[] row : scenarios) {
-                comparisonModel.addRow(row);
-            }
-        }
+        if (comparisonModel == null) return;
+        comparisonModel.setRowCount(0);
+ 
+        String sjfStr = latestSJFResult != null
+            ? String.format("Avg WT=%.2f  TAT=%.2f  RT=%.2f",
+                latestSJFResult.avgWaitingTime,
+                latestSJFResult.avgTurnaroundTime,
+                latestSJFResult.avgResponseTime)
+            : "Run SJF first";
+ 
+        String priStr = latestPriorityResult != null
+            ? String.format("Avg WT=%.2f  TAT=%.2f  RT=%.2f",
+                latestPriorityResult.avgWaitingTime,
+                latestPriorityResult.avgTurnaroundTime,
+                latestPriorityResult.avgResponseTime)
+            : "Run Priority first";
+ 
+        comparisonModel.addRow(new Object[]{
+            "1. Short job, low priority",
+            "SJF ignores priority \u2014 short job runs fast regardless of priority.",
+            "Priority may starve the short job if high-priority longer jobs keep arriving.",
+            "SJF"
+        });
+        comparisonModel.addRow(new Object[]{
+            "2. Long job, high priority",
+            "SJF delays the long high-priority job \u2014 burst length decides order.",
+            "Priority runs the urgent long job first (smallest number = highest priority).",
+            "Priority"
+        });
+        comparisonModel.addRow(new Object[]{
+            "3. Avg WT / TAT / RT (your data)",
+            sjfStr,
+            priStr,
+            getBetterOverall()
+        });
+        comparisonModel.addRow(new Object[]{
+            "4. Urgent processes",
+            "SJF may delay urgent long jobs \u2014 urgency is ignored entirely.",
+            "Priority is designed for urgency \u2014 highest priority always runs next.",
+            "Priority"
+        });
+        comparisonModel.addRow(new Object[]{
+            "5. Starvation / Fairness",
+            "SJF can starve long jobs if short jobs keep arriving.",
+            "Priority can starve low-priority processes if higher ones keep arriving.",
+            "Both risky"
+        });
     }
-    
+ 
     private String getBetterOverall() {
-        if (latestSJFResult == null || latestPriorityResult == null) 
-            return "Run both algorithms";
-        double sjfAvg = (latestSJFResult.avgResponseTime + latestSJFResult.avgWaitingTime + latestSJFResult.avgTurnaroundTime) / 3;
-        double priAvg = (latestPriorityResult.avgResponseTime + latestPriorityResult.avgWaitingTime + latestPriorityResult.avgTurnaroundTime) / 3;
-        if (sjfAvg < priAvg) return "SJF better on average";
-        else if (priAvg < sjfAvg) return "Priority better on average";
-        else return "Equal";
+        if (latestSJFResult == null || latestPriorityResult == null) return "Run both first";
+        double sjf = (latestSJFResult.avgWaitingTime + latestSJFResult.avgTurnaroundTime + latestSJFResult.avgResponseTime) / 3;
+        double pri = (latestPriorityResult.avgWaitingTime + latestPriorityResult.avgTurnaroundTime + latestPriorityResult.avgResponseTime) / 3;
+        if (sjf < pri) return "SJF";
+        if (pri < sjf) return "Priority";
+        return "Equal";
     }
-    
-    // ========== CONCLUSION WINDOW ==========
+ 
+    // ===================== CONCLUSION WINDOW =====================
     private void openConclusionWindow() {
-        JDialog conclusionDialog = new JDialog(this, "Conclusion", false);
-        conclusionDialog.setSize(600, 400);
-        conclusionDialog.setLocationRelativeTo(this);
-        
-        JTextArea conclusionArea = new JTextArea();
-        conclusionArea.setEditable(false);
-        conclusionArea.setFont(new Font("Arial", Font.PLAIN, 14));
-        conclusionArea.setBackground(new Color(255, 255, 224));
-        conclusionArea.setLineWrap(true);
-        conclusionArea.setWrapStyleWord(true);
-        
-        JScrollPane scrollPane = new JScrollPane(conclusionArea);
-        
-        StringBuilder conclusion = new StringBuilder();
-        conclusion.append("CONCLUSION:\n\n");
-        
+        JDialog dlg = new JDialog(this, "Conclusion", false);
+        dlg.setSize(560, 380);
+        dlg.setLocationRelativeTo(this);
+ 
+        GradientPanel panel = new GradientPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setBorder(new EmptyBorder(16, 20, 16, 20));
+        dlg.setContentPane(panel);
+ 
+        JTextArea area = new JTextArea();
+        area.setEditable(false);
+        area.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        area.setBackground(BG_CARD);
+        area.setForeground(TEXT_PRIMARY);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setBorder(new EmptyBorder(12, 14, 12, 14));
+ 
+        StringBuilder sb = new StringBuilder("CONCLUSION\n");
+        sb.append("------------------------------------------\n\n");
+ 
         if (latestSJFResult == null && latestPriorityResult == null) {
-            conclusion.append("- No algorithm results available yet.\n");
-            conclusion.append("- Please run both SJF and Priority algorithms first.\n\n");
-        } else if (latestSJFResult == null) {
-            conclusion.append("- Only Priority algorithm results are available.\n");
-            conclusion.append("- Please run SJF algorithm for complete comparison.\n\n");
-        } else if (latestPriorityResult == null) {
-            conclusion.append("- Only SJF algorithm results are available.\n");
-            conclusion.append("- Please run Priority algorithm for complete comparison.\n\n");
+            sb.append("No results yet.\nPlease run SJF and/or Priority algorithm first.\n");
         } else {
-            if (latestSJFResult.avgWaitingTime < latestPriorityResult.avgWaitingTime) {
-                conclusion.append("- SJF minimizes average waiting time.\n");
-                conclusion.append(String.format("  (SJF: %.2f, Priority: %.2f)\n", 
-                    latestSJFResult.avgWaitingTime, latestPriorityResult.avgWaitingTime));
-            } else if (latestPriorityResult.avgWaitingTime < latestSJFResult.avgWaitingTime) {
-                conclusion.append("- Priority minimizes average waiting time.\n");
-                conclusion.append(String.format("  (Priority: %.2f, SJF: %.2f)\n", 
-                    latestPriorityResult.avgWaitingTime, latestSJFResult.avgWaitingTime));
+            if (latestSJFResult != null)
+                sb.append(String.format("SJF:       Avg WT=%.2f   TAT=%.2f   RT=%.2f%n",
+                    latestSJFResult.avgWaitingTime,
+                    latestSJFResult.avgTurnaroundTime,
+                    latestSJFResult.avgResponseTime));
+            if (latestPriorityResult != null)
+                sb.append(String.format("Priority:  Avg WT=%.2f   TAT=%.2f   RT=%.2f%n",
+                    latestPriorityResult.avgWaitingTime,
+                    latestPriorityResult.avgTurnaroundTime,
+                    latestPriorityResult.avgResponseTime));
+ 
+            sb.append("\n");
+ 
+            if (latestSJFResult != null && latestPriorityResult != null) {
+                if (latestSJFResult.avgWaitingTime < latestPriorityResult.avgWaitingTime)
+                    sb.append("* SJF gives lower average waiting time.\n");
+                else if (latestPriorityResult.avgWaitingTime < latestSJFResult.avgWaitingTime)
+                    sb.append("* Priority gives lower average waiting time.\n");
+                else
+                    sb.append("* Both have equal average waiting time.\n");
+ 
+                if (latestSJFResult.avgTurnaroundTime < latestPriorityResult.avgTurnaroundTime)
+                    sb.append("* SJF gives lower average turnaround time.\n");
+                else if (latestPriorityResult.avgTurnaroundTime < latestSJFResult.avgTurnaroundTime)
+                    sb.append("* Priority gives lower average turnaround time.\n");
+ 
+                if (latestSJFResult.avgResponseTime < latestPriorityResult.avgResponseTime)
+                    sb.append("* SJF gives better average response time.\n");
+                else if (latestPriorityResult.avgResponseTime < latestSJFResult.avgResponseTime)
+                    sb.append("* Priority gives better average response time.\n");
+ 
+                sb.append("\n* Both algorithms can cause starvation under certain conditions.\n");
+                sb.append("* Consider aging to prevent starvation in real systems.\n");
             }
-            
-            if (latestSJFResult.avgTurnaroundTime < latestPriorityResult.avgTurnaroundTime) {
-                conclusion.append("- SJF minimizes average turnaround time.\n");
-                conclusion.append(String.format("  (SJF: %.2f, Priority: %.2f)\n", 
-                    latestSJFResult.avgTurnaroundTime, latestPriorityResult.avgTurnaroundTime));
-            } else if (latestPriorityResult.avgTurnaroundTime < latestSJFResult.avgTurnaroundTime) {
-                conclusion.append("- Priority minimizes average turnaround time.\n");
-                conclusion.append(String.format("  (Priority: %.2f, SJF: %.2f)\n", 
-                    latestPriorityResult.avgTurnaroundTime, latestSJFResult.avgTurnaroundTime));
-            }
-            
-            if (latestSJFResult.avgResponseTime < latestPriorityResult.avgResponseTime) {
-                conclusion.append("- SJF gives better average response time.\n");
-            } else if (latestPriorityResult.avgResponseTime < latestSJFResult.avgResponseTime) {
-                conclusion.append("- Priority gives better average response time.\n");
-            }
-            
-            conclusion.append("\n- Both algorithms may cause starvation under certain conditions.\n");
-            conclusion.append("- Consider using aging to prevent starvation.\n");
         }
-        
-        conclusionArea.setText(conclusion.toString());
-        conclusionArea.setCaretPosition(0);
-        
-        conclusionDialog.setLayout(new BorderLayout());
-        conclusionDialog.add(scrollPane, BorderLayout.CENTER);
-        
-        conclusionDialog.setVisible(true);
+ 
+        area.setText(sb.toString());
+        area.setCaretPosition(0);
+ 
+        JScrollPane scroll = new JScrollPane(area);
+        scroll.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
+        scroll.getViewport().setBackground(BG_CARD);
+        panel.add(scroll, BorderLayout.CENTER);
+        dlg.setVisible(true);
     }
-    
+ 
+    // ===================== UI HELPERS =====================
+    private JLabel separator(String text) {
+        JLabel lbl = new JLabel("--  " + text + "  --", SwingConstants.CENTER);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lbl.setForeground(TEXT_MUTED);
+        lbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+        return lbl;
+    }
+ 
+    private JTextField dialogField() {
+        JTextField tf = new JTextField(16);
+        tf.setFont(new Font("Consolas", Font.PLAIN, 13));
+        tf.setForeground(TEXT_PRIMARY);
+        tf.setBackground(BG_INPUT);
+        tf.setCaretColor(ACCENT_BLUE);
+        tf.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 1, true),
+            new EmptyBorder(5, 10, 5, 10)));
+        return tf;
+    }
+ 
+    private JButton menuBtn(String text, Color color, Dimension size, ActionListener al) {
+        JButton btn = new JButton(text) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                Color base  = new Color(color.getRed(), color.getGreen(), color.getBlue(), 35);
+                Color hover = new Color(color.getRed(), color.getGreen(), color.getBlue(), 70);
+                g2.setColor(getModel().isRollover() ? hover : base);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.setColor(color);
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 12, 12);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btn.setForeground(color);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(size);
+        btn.setMaximumSize(size);
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.setHorizontalAlignment(SwingConstants.LEFT);
+        btn.setBorder(new EmptyBorder(0, 18, 0, 0));
+        btn.addActionListener(al);
+        return btn;
+    }
+ 
+    private JButton accentBtn(String text, Color color) {
+        JButton btn = new JButton(text) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? color.brighter() : color);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setForeground(Color.WHITE);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(180, 36));
+        return btn;
+    }
+ 
+    private void styleTable(JTable table) {
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setForeground(TEXT_PRIMARY);
+        table.setBackground(BG_CARD);
+        table.setSelectionBackground(new Color(64, 156, 255, 60));
+        table.setSelectionForeground(TEXT_PRIMARY);
+        table.setGridColor(BORDER_COLOR);
+        table.setRowHeight(34);
+        table.setIntercellSpacing(new Dimension(0, 1));
+ 
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        header.setBackground(BG_INPUT);
+        header.setForeground(ACCENT_BLUE);
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR));
+ 
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable t, Object v,
+                    boolean sel, boolean foc, int row, int col) {
+                super.getTableCellRendererComponent(t, v, sel, foc, row, col);
+                setBackground(row % 2 == 0 ? BG_CARD : new Color(28, 36, 58));
+                setForeground(TEXT_PRIMARY);
+                setBorder(new EmptyBorder(0, 10, 0, 10));
+                return this;
+            }
+        });
+    }
+ 
+    private JScrollPane darkScroll(JTable table) {
+        JScrollPane sp = new JScrollPane(table);
+        sp.setOpaque(false);
+        sp.getViewport().setBackground(BG_CARD);
+        sp.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
+        return sp;
+    }
+ 
+    private void err(Component parent, String msg) {
+        JOptionPane.showMessageDialog(parent, msg, "Validation Error", JOptionPane.WARNING_MESSAGE);
+    }
+ 
+    // ===================== GRADIENT BACKGROUND =====================
+    static class GradientPanel extends JPanel {
+        @Override protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2.setPaint(new GradientPaint(0, 0, BG_DARK, getWidth(), getHeight(), new Color(18, 10, 38)));
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.setPaint(new RadialGradientPaint(
+                new Point2D.Float(0, 0), getWidth() * 0.65f,
+                new float[]{0f, 1f},
+                new Color[]{new Color(64, 156, 255, 22), new Color(0, 0, 0, 0)}));
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.dispose();
+        }
+    }
+ 
+    // ===================== INNER DATA CLASSES =====================
+    public static class Process {
+        private final String  id;
+        private final int     arrivalTime;
+        private final int     burstTime;
+        private final Integer priority;
+ 
+        public Process(String id, int arrivalTime, int burstTime, Integer priority) {
+            this.id          = id;
+            this.arrivalTime = arrivalTime;
+            this.burstTime   = burstTime;
+            this.priority    = priority;
+        }
+        public String  getId()          { return id; }
+        public int     getArrivalTime() { return arrivalTime; }
+        public int     getBurstTime()   { return burstTime; }
+        public Integer getPriority()    { return priority; }
+    }
+ 
+    static class SJFResult {
+        double avgResponseTime, avgTurnaroundTime, avgWaitingTime;
+    }
+ 
+    static class PriorityResult {
+        double avgResponseTime, avgTurnaroundTime, avgWaitingTime;
+    }
+ 
+    // ===================== MAIN =====================
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new OS_Project_Main());
+        SwingUtilities.invokeLater(() -> {
+            try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
+            catch (Exception ignored) {}
+            new OS_Project_Main().setVisible(true);
+        });
     }
-}
-
-// Data classes for storing results
-class SJFResult {
-    double avgResponseTime;
-    double avgTurnaroundTime;
-    double avgWaitingTime;
-}
-
-class PriorityResult {
-    double avgResponseTime;
-    double avgTurnaroundTime;
-    double avgWaitingTime;
-}
-
-// UI Process class
-class Process {
-    private String id;
-    private int arrivalTime;
-    private int burstTime;
-    private Integer priority;
-    
-    public Process(String id, int arrivalTime, int burstTime, Integer priority) {
-        this.id = id;
-        this.arrivalTime = arrivalTime;
-        this.burstTime = burstTime;
-        this.priority = priority;
-    }
-    
-    public String getId() { return id; }
-    public int getArrivalTime() { return arrivalTime; }
-    public int getBurstTime() { return burstTime; }
-    public Integer getPriority() { return priority; }
 }

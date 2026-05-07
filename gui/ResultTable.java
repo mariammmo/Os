@@ -1,5 +1,3 @@
-package osprojectfinal;
-
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -10,8 +8,6 @@ package osprojectfinal;
  * @author Maya sameh
  */
 // ResultTable.java
-import osprojectfinal.PriorityResult;
-import osprojectfinal.SJFResult;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -21,10 +17,10 @@ public class ResultTable {
     
     private JDialog comparisonDialog;
     private DefaultTableModel comparisonModel;
-    private SJFResult latestSJFResult;
-    private PriorityResult latestPriorityResult;
+    private OS_Project_Main.SJFResult latestSJFResult;
+    private OS_Project_Main.PriorityResult latestPriorityResult;
     
-    public ResultTable(SJFResult sjfResult, PriorityResult priorityResult) {
+    public ResultTable(OS_Project_Main.SJFResult sjfResult, OS_Project_Main.PriorityResult priorityResult) {
         this.latestSJFResult = sjfResult;
         this.latestPriorityResult = priorityResult;
     }
@@ -70,11 +66,6 @@ public class ResultTable {
                 String.format("%.2f", latestSJFResult.avgWaitingTime) : "Not calculated";
             String priorityWaiting = (latestPriorityResult != null) ? 
                 String.format("%.2f", latestPriorityResult.avgWaitingTime) : "Not calculated";
-            
-            String sjfTurnaround = (latestSJFResult != null) ? 
-                String.format("%.2f", latestSJFResult.avgTurnaroundTime) : "Not calculated";
-            String priorityTurnaround = (latestPriorityResult != null) ? 
-                String.format("%.2f", latestPriorityResult.avgTurnaroundTime) : "Not calculated";
             
             Object[][] scenarios = {
                 {"1. Short job has low priority"," " , "", ""},
@@ -139,4 +130,3 @@ public class ResultTable {
         conclusionDialog.setVisible(true);
     }
 }
-

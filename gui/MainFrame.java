@@ -10,15 +10,13 @@
 // MainFrame.java
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainFrame extends JFrame {
     
-    private List<Process> processList;
+    private List<OS_Project_Main.Process> processList;
     private JButton btnAddProcess;
     private JButton btnViewProcessTable;
     private JButton btnRunSJF;
@@ -26,8 +24,8 @@ public class MainFrame extends JFrame {
     private JButton btnViewComparison;
     private JButton btnViewConclusion;
     
-    private SJFResult latestSJFResult;
-    private PriorityResult latestPriorityResult;
+    private OS_Project_Main.SJFResult latestSJFResult;
+    private OS_Project_Main.PriorityResult latestPriorityResult;
     
     private JDialog processTableDialog;
     private DefaultTableModel processTableModel;
@@ -35,7 +33,7 @@ public class MainFrame extends JFrame {
     private DefaultTableModel comparisonModel;
     
     public MainFrame() {
-        processList = new ArrayList<>();
+        processList = new ArrayList<OS_Project_Main.Process>();
         latestSJFResult = null;
         latestPriorityResult = null;
         initializeMainWindow();
@@ -185,7 +183,7 @@ public class MainFrame extends JFrame {
                 int burstTime = Integer.parseInt(burstStr);
                 Integer priority = priorityStr.isEmpty() ? null : Integer.parseInt(priorityStr);
                 
-                Process process = new Process(id, arrivalTime, burstTime, priority);
+                OS_Project_Main.Process process = new OS_Project_Main.Process(id, arrivalTime, burstTime, priority);
                 processList.add(process);
                 
                 JOptionPane.showMessageDialog(inputDialog, 
@@ -227,7 +225,7 @@ public class MainFrame extends JFrame {
     private void refreshProcessTable() {
         if (processTableModel != null) {
             processTableModel.setRowCount(0);
-            for (Process p : processList) {
+            for (OS_Project_Main.Process p : processList) {
                 Object[] row = {p.getId(), p.getArrivalTime(), p.getBurstTime(), 
                                p.getPriority() != null ? p.getPriority() : "N/A"};
                 processTableModel.addRow(row);
@@ -259,7 +257,7 @@ public class MainFrame extends JFrame {
         resultTable.openConclusionWindow(this);
     }
     
-    public List<Process> getProcessList() {
+    public List<OS_Project_Main.Process> getProcessList() {
         return processList;
     }
     

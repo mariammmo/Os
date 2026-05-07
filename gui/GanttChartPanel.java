@@ -1,4 +1,3 @@
-package osprojectfinal;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -130,7 +129,7 @@ public class GanttChartPanel {
 
     // ===================== SJF WINDOW =====================
 
-    public static void openSJFWindow(java.awt.Window parent, List<Process> processList) {
+    public static void openSJFWindow(java.awt.Window parent, List<OS_Project_Main.Process> processList) {
         if (processList.isEmpty()) {
             JOptionPane.showMessageDialog(parent,
                 "Please add at least one process first!",
@@ -178,7 +177,7 @@ public class GanttChartPanel {
             // بناء SJF processes من الـ processList
             SJF.Process[] sjfArr = new SJF.Process[n];
             for (int i = 0; i < n; i++) {
-                Process p = processList.get(i);
+                OS_Project_Main.Process p = processList.get(i);
                 sjfArr[i] = new SJF.Process();
                 sjfArr[i].id = i + 1;
                 sjfArr[i].at = p.getArrivalTime();
@@ -189,7 +188,7 @@ public class GanttChartPanel {
             }
 
             // تشغيل SJF
-            osprojectfinal.SJF(sjfArr, n);
+            SJF.schedule(sjfArr, n);
 
             // بناء الـ Gantt entries
             // SJF non-preemptive: كل process بتتنفذ من startTime لـ startTime + bt
@@ -250,7 +249,7 @@ public class GanttChartPanel {
 
     // ===================== PRIORITY WINDOW =====================
 
-    public static void openPriorityWindow(Window parent, List<Process> processList, PriorityResult latestPriorityResult) {
+    public static void openPriorityWindow(Window parent, List<OS_Project_Main.Process> processList, OS_Project_Main.PriorityResult latestPriorityResult) {
         if (processList.isEmpty()) {
             JOptionPane.showMessageDialog(parent,
                 "Please add at least one process first!",
@@ -259,7 +258,7 @@ public class GanttChartPanel {
         }
 
         // تأكدي إن كل الـ processes عندها priority
-        for (Process p : processList) {
+        for (OS_Project_Main.Process p : processList) {
             if (p.getPriority() == null) {
                 JOptionPane.showMessageDialog(parent,
                     "All processes must have a priority value!",
@@ -305,7 +304,7 @@ public class GanttChartPanel {
 
             // بناء Priority processes من الـ processList
             List<PriorityScheduler.Process_Priority> prList = new ArrayList<>();
-            for (Process p : processList) {
+            for (OS_Project_Main.Process p : processList) {
                 prList.add(new PriorityScheduler.Process_Priority(
                     p.getId(),
                     p.getBurstTime(),
@@ -324,7 +323,7 @@ public class GanttChartPanel {
             int gn = prList.size();
             // نعمل copy عشان نشغل مرتين (مرة للـ Gantt ومرة للـ metrics)
             List<PriorityScheduler.Process_Priority> copyList = new ArrayList<>();
-            for (Process p : processList) {
+            for (OS_Project_Main.Process p : processList) {
                 copyList.add(new PriorityScheduler.Process_Priority(
                     p.getId(),
                     p.getBurstTime(),
@@ -435,7 +434,7 @@ public class GanttChartPanel {
     }
     // ===================== SRTF WINDOW =====================
 
-public static void openSRTFWindow(java.awt.Window parent, List<Process> processList) {
+public static void openSRTFWindow(java.awt.Window parent, List<OS_Project_Main.Process> processList) {
     if (processList.isEmpty()) {
         JOptionPane.showMessageDialog(null,
             "Please add at least one process first!",
@@ -483,7 +482,7 @@ public static void openSRTFWindow(java.awt.Window parent, List<Process> processL
             // بناء الـ SRTF processes
             SJF_preemptive.Process[] srtfArr = new SJF_preemptive.Process[n];
             for (int i = 0; i < n; i++) {
-                Process p = processList.get(i);
+                OS_Project_Main.Process p = processList.get(i);
                 srtfArr[i] = new SJF_preemptive.Process();
                 srtfArr[i].id = i + 1;
                 srtfArr[i].at = p.getArrivalTime();

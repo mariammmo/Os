@@ -126,3 +126,16 @@ Process    Arrival    Burst      Waiting    Turnaround   Response
 Average Waiting Time: 0.50
 Average Turnaround Time: 1.50
 Average Response Time: 0.50
+
+================ SJF RESULTS ================
+
+Process    Arrival    Burst      Waiting    Turnaround   Response    
+1          1          1          0          1            0           
+1          1          1          1          2            1           
+1          1          1          2          3            2           
+1          1          1          3          4            3           
+============================================================================
+
+Average Waiting Time: 1.50
+Average Turnaround Time: 2.50
+Average Response Time: 1.50
