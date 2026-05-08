@@ -23,8 +23,9 @@ public class OS_Project_Main extends JFrame {
  
     // ===================== STATE =====================
     private List<Process> processList           = new ArrayList<>();
-    private SJFResult      latestSJFResult      = null;
+    private SJFResult      latestSJFResult      = null;  // kept for internal use
     private PriorityResult latestPriorityResult = null;
+    private SRTFResult     latestSRTFResult     = null;  // NEW: store SRTF results
  
     private DefaultTableModel processTableModel = null;
     private DefaultTableModel comparisonModel   = null;
@@ -41,7 +42,7 @@ public class OS_Project_Main extends JFrame {
     private void initializeMainWindow() {
         setTitle("CPU Scheduling Simulator");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(520, 680);
+        setSize(520, 620);   // slightly shorter since one button removed
         setLocationRelativeTo(null);
         setResizable(false);
  
@@ -60,7 +61,8 @@ public class OS_Project_Main extends JFrame {
         titleLbl.setForeground(TEXT_PRIMARY);
         titleLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
  
-        JLabel subLbl = new JLabel("SJF  \u00b7  SRTF  \u00b7  Priority", SwingConstants.CENTER);
+        // CHANGE 1: Updated subtitle - removed SJF, kept SRTF · Priority
+        JLabel subLbl = new JLabel("SRTF  \u00b7  Priority", SwingConstants.CENTER);
         subLbl.setFont(new Font("Segoe UI", Font.ITALIC, 13));
         subLbl.setForeground(TEXT_MUTED);
         subLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -87,8 +89,10 @@ public class OS_Project_Main extends JFrame {
         center.add(separator("RUN ALGORITHM"));
         center.add(Box.createVerticalStrut(10));
  
-        center.add(menuBtn("\u25b6   RUN SJF (Non-Preemptive)",  ACCENT_ORANGE, btnSize, e -> openSJFWindow()));
-        center.add(Box.createVerticalStrut(10));
+        // CHANGE 1: SJF button is REMOVED from GUI (code kept below)
+        // center.add(menuBtn("\u25b6   RUN SJF (Non-Preemptive)", ACCENT_ORANGE, btnSize, e -> openSJFWindow()));
+        // center.add(Box.createVerticalStrut(10));
+
         center.add(menuBtn("\u25b6   RUN SRTF (Preemptive SJF)", ACCENT_GREEN,  btnSize, e -> openSRTFWindow()));
         center.add(Box.createVerticalStrut(10));
         center.add(menuBtn("\u25b6   RUN PRIORITY SCHEDULING",   ACCENT_PURPLE, btnSize, e -> openPriorityWindow()));
@@ -260,7 +264,7 @@ public class OS_Project_Main extends JFrame {
         }
     }
  
-    // ===================== SJF ALGORITHM WINDOW =====================
+    // ===================== SJF ALGORITHM (CODE KEPT, NOT SHOWN IN GUI) =====================
     private void openSJFWindow() {
         if (processList.isEmpty()) {
             err(this, "Please add at least one process first!"); return;
@@ -268,11 +272,10 @@ public class OS_Project_Main extends JFrame {
  
         int n = processList.size();
  
-        // --- Run SJF Non-Preemptive ---
         int[] at  = new int[n], bt  = new int[n];
         int[] wt  = new int[n], tat = new int[n], rt = new int[n];
         boolean[] done = new boolean[n];
-        List<int[]> ganttBlocks = new ArrayList<>(); // {processIndex, start, end}
+        List<int[]> ganttBlocks = new ArrayList<>();
  
         for (int i = 0; i < n; i++) {
             at[i] = processList.get(i).getArrivalTime();
@@ -310,7 +313,6 @@ public class OS_Project_Main extends JFrame {
         latestSJFResult.avgTurnaroundTime = avgTAT;
         latestSJFResult.avgResponseTime   = avgRT;
  
-        // --- Build result rows ---
         String[] cols = {"Process ID", "Arrival", "Burst", "Waiting", "Turnaround", "Response"};
         Object[][] rows = new Object[n + 1][6];
         for (int i = 0; i < n; i++) {
@@ -333,7 +335,7 @@ public class OS_Project_Main extends JFrame {
         int[] wt   = new int[n], tat = new int[n], rt  = new int[n];
         boolean[] done        = new boolean[n];
         boolean[] startedOnce = new boolean[n];
-        List<int[]> ganttBlocks = new ArrayList<>(); // {processIndex, start, end}
+        List<int[]> ganttBlocks = new ArrayList<>();
  
         for (int i = 0; i < n; i++) {
             at[i]  = processList.get(i).getArrivalTime();
@@ -385,6 +387,12 @@ public class OS_Project_Main extends JFrame {
         double avgWT = 0, avgTAT = 0, avgRT = 0;
         for (int i = 0; i < n; i++) { avgWT += wt[i]; avgTAT += tat[i]; avgRT += rt[i]; }
         avgWT /= n; avgTAT /= n; avgRT /= n;
+
+        // CHANGE 2 & 3: Save SRTF results to latestSRTFResult
+        latestSRTFResult = new SRTFResult();
+        latestSRTFResult.avgWaitingTime    = avgWT;
+        latestSRTFResult.avgTurnaroundTime = avgTAT;
+        latestSRTFResult.avgResponseTime   = avgRT;
  
         String[] cols = {"Process ID", "Arrival", "Burst", "Waiting", "Turnaround", "Response"};
         Object[][] rows = new Object[n + 1][6];
@@ -520,7 +528,6 @@ public class OS_Project_Main extends JFrame {
  
         JTable table = new JTable(model);
         styleTable(table);
-        // highlight last (average) row
         int lastRow = rows.length - 1;
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             public Component getTableCellRendererComponent(JTable t, Object v,
@@ -577,7 +584,7 @@ public class OS_Project_Main extends JFrame {
             int BAR_Y = 15;
             int BAR_H = 40;
             int drawW = getWidth() - PAD * 2;
-            int lastTime = blocks.get(blocks.size() - 1)[2]; // end of last block
+            int lastTime = blocks.get(blocks.size() - 1)[2];
             if (lastTime == 0) lastTime = 1;
  
             for (int[] block : blocks) {
@@ -595,7 +602,6 @@ public class OS_Project_Main extends JFrame {
                 g2.setStroke(new BasicStroke(1f));
                 g2.drawRoundRect(x, BAR_Y, w, BAR_H, 6, 6);
  
-                // label
                 if (w > 18) {
                     g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
                     g2.setColor(Color.WHITE);
@@ -607,7 +613,6 @@ public class OS_Project_Main extends JFrame {
                 }
             }
  
-            // time axis ticks
             g2.setColor(new Color(100, 116, 139));
             g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
             g2.setStroke(new BasicStroke(1f));
@@ -632,8 +637,9 @@ public class OS_Project_Main extends JFrame {
     }
  
     // ===================== COMPARISON WINDOW =====================
+    // CHANGE 2: Comparison is now between SRTF and Priority only
     private void openComparisonWindow() {
-        comparisonDialog = new JDialog(this, "Algorithm Comparison \u2014 5 Scenarios", false);
+        comparisonDialog = new JDialog(this, "Algorithm Comparison \u2014 SRTF vs Priority", false);
         comparisonDialog.setSize(980, 460);
         comparisonDialog.setLocationRelativeTo(this);
  
@@ -641,13 +647,12 @@ public class OS_Project_Main extends JFrame {
         panel.setLayout(new BorderLayout());
         comparisonDialog.setContentPane(panel);
  
-        String[] cols = {"Scenario", "SJF", "Priority", "Better"};
+        String[] cols = {"Scenario", "SRTF (Preemptive SJF)", "Priority", "Better"};
         comparisonModel = new DefaultTableModel(cols, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
  
         JTable table = new JTable(comparisonModel) {
-            // make rows taller for wrapped text
             public int getRowHeight(int row) { return 58; }
         };
         styleTable(table);
@@ -675,16 +680,17 @@ public class OS_Project_Main extends JFrame {
         comparisonDialog.setVisible(true);
     }
  
+    // CHANGE 2: refreshComparisonTable now compares SRTF vs Priority
     private void refreshComparisonTable() {
         if (comparisonModel == null) return;
         comparisonModel.setRowCount(0);
  
-        String sjfStr = latestSJFResult != null
+        String srtfStr = latestSRTFResult != null
             ? String.format("Avg WT=%.2f  TAT=%.2f  RT=%.2f",
-                latestSJFResult.avgWaitingTime,
-                latestSJFResult.avgTurnaroundTime,
-                latestSJFResult.avgResponseTime)
-            : "Run SJF first";
+                latestSRTFResult.avgWaitingTime,
+                latestSRTFResult.avgTurnaroundTime,
+                latestSRTFResult.avgResponseTime)
+            : "Run SRTF first";
  
         String priStr = latestPriorityResult != null
             ? String.format("Avg WT=%.2f  TAT=%.2f  RT=%.2f",
@@ -695,49 +701,51 @@ public class OS_Project_Main extends JFrame {
  
         comparisonModel.addRow(new Object[]{
             "1. Short job, low priority",
-            "SJF ignores priority \u2014 short job runs fast regardless of priority.",
-            "Priority may starve the short job if high-priority longer jobs keep arriving.",
-            "SJF"
+            "SRTF always runs the shortest remaining job \u2014 priority is completely ignored.",
+            "Priority may delay the short job if high-priority longer jobs keep arriving.",
+            "SRTF"
         });
         comparisonModel.addRow(new Object[]{
             "2. Long job, high priority",
-            "SJF delays the long high-priority job \u2014 burst length decides order.",
-            "Priority runs the urgent long job first (smallest number = highest priority).",
+            "SRTF will preempt the long job the moment a shorter job arrives.",
+            "Priority keeps the high-priority long job running \u2014 urgency is respected.",
             "Priority"
         });
         comparisonModel.addRow(new Object[]{
             "3. Avg WT / TAT / RT (your data)",
-            sjfStr,
+            srtfStr,
             priStr,
             getBetterOverall()
         });
         comparisonModel.addRow(new Object[]{
-            "4. Urgent processes",
-            "SJF may delay urgent long jobs \u2014 urgency is ignored entirely.",
-            "Priority is designed for urgency \u2014 highest priority always runs next.",
-            "Priority"
+            "4. Preemption behaviour",
+            "SRTF preempts aggressively on every new arrival \u2014 optimal for minimising WT.",
+            "Priority preempts based on urgency level, not burst length.",
+            "Depends on goal"
         });
         comparisonModel.addRow(new Object[]{
             "5. Starvation / Fairness",
-            "SJF can starve long jobs if short jobs keep arriving.",
-            "Priority can starve low-priority processes if higher ones keep arriving.",
+            "SRTF can starve long jobs if short jobs keep arriving continuously.",
+            "Priority can starve low-priority processes if higher-priority ones keep arriving.",
             "Both risky"
         });
     }
  
+    // CHANGE 2: getBetterOverall now compares SRTF vs Priority
     private String getBetterOverall() {
-        if (latestSJFResult == null || latestPriorityResult == null) return "Run both first";
-        double sjf = (latestSJFResult.avgWaitingTime + latestSJFResult.avgTurnaroundTime + latestSJFResult.avgResponseTime) / 3;
-        double pri = (latestPriorityResult.avgWaitingTime + latestPriorityResult.avgTurnaroundTime + latestPriorityResult.avgResponseTime) / 3;
-        if (sjf < pri) return "SJF";
-        if (pri < sjf) return "Priority";
+        if (latestSRTFResult == null || latestPriorityResult == null) return "Run both first";
+        double srtf = (latestSRTFResult.avgWaitingTime + latestSRTFResult.avgTurnaroundTime + latestSRTFResult.avgResponseTime) / 3;
+        double pri  = (latestPriorityResult.avgWaitingTime + latestPriorityResult.avgTurnaroundTime + latestPriorityResult.avgResponseTime) / 3;
+        if (srtf < pri) return "SRTF";
+        if (pri < srtf) return "Priority";
         return "Equal";
     }
  
     // ===================== CONCLUSION WINDOW =====================
+    // CHANGE 3: Conclusion now compares SRTF vs Priority only
     private void openConclusionWindow() {
         JDialog dlg = new JDialog(this, "Conclusion", false);
-        dlg.setSize(560, 380);
+        dlg.setSize(560, 400);
         dlg.setLocationRelativeTo(this);
  
         GradientPanel panel = new GradientPanel();
@@ -757,14 +765,14 @@ public class OS_Project_Main extends JFrame {
         StringBuilder sb = new StringBuilder("CONCLUSION\n");
         sb.append("------------------------------------------\n\n");
  
-        if (latestSJFResult == null && latestPriorityResult == null) {
-            sb.append("No results yet.\nPlease run SJF and/or Priority algorithm first.\n");
+        if (latestSRTFResult == null && latestPriorityResult == null) {
+            sb.append("No results yet.\nPlease run SRTF and/or Priority algorithm first.\n");
         } else {
-            if (latestSJFResult != null)
-                sb.append(String.format("SJF:       Avg WT=%.2f   TAT=%.2f   RT=%.2f%n",
-                    latestSJFResult.avgWaitingTime,
-                    latestSJFResult.avgTurnaroundTime,
-                    latestSJFResult.avgResponseTime));
+            if (latestSRTFResult != null)
+                sb.append(String.format("SRTF:      Avg WT=%.2f   TAT=%.2f   RT=%.2f%n",
+                    latestSRTFResult.avgWaitingTime,
+                    latestSRTFResult.avgTurnaroundTime,
+                    latestSRTFResult.avgResponseTime));
             if (latestPriorityResult != null)
                 sb.append(String.format("Priority:  Avg WT=%.2f   TAT=%.2f   RT=%.2f%n",
                     latestPriorityResult.avgWaitingTime,
@@ -773,25 +781,31 @@ public class OS_Project_Main extends JFrame {
  
             sb.append("\n");
  
-            if (latestSJFResult != null && latestPriorityResult != null) {
-                if (latestSJFResult.avgWaitingTime < latestPriorityResult.avgWaitingTime)
-                    sb.append("* SJF gives lower average waiting time.\n");
-                else if (latestPriorityResult.avgWaitingTime < latestSJFResult.avgWaitingTime)
+            if (latestSRTFResult != null && latestPriorityResult != null) {
+                if (latestSRTFResult.avgWaitingTime < latestPriorityResult.avgWaitingTime)
+                    sb.append("* SRTF gives lower average waiting time.\n");
+                else if (latestPriorityResult.avgWaitingTime < latestSRTFResult.avgWaitingTime)
                     sb.append("* Priority gives lower average waiting time.\n");
                 else
                     sb.append("* Both have equal average waiting time.\n");
  
-                if (latestSJFResult.avgTurnaroundTime < latestPriorityResult.avgTurnaroundTime)
-                    sb.append("* SJF gives lower average turnaround time.\n");
-                else if (latestPriorityResult.avgTurnaroundTime < latestSJFResult.avgTurnaroundTime)
+                if (latestSRTFResult.avgTurnaroundTime < latestPriorityResult.avgTurnaroundTime)
+                    sb.append("* SRTF gives lower average turnaround time.\n");
+                else if (latestPriorityResult.avgTurnaroundTime < latestSRTFResult.avgTurnaroundTime)
                     sb.append("* Priority gives lower average turnaround time.\n");
+                else
+                    sb.append("* Both have equal average turnaround time.\n");
  
-                if (latestSJFResult.avgResponseTime < latestPriorityResult.avgResponseTime)
-                    sb.append("* SJF gives better average response time.\n");
-                else if (latestPriorityResult.avgResponseTime < latestSJFResult.avgResponseTime)
+                if (latestSRTFResult.avgResponseTime < latestPriorityResult.avgResponseTime)
+                    sb.append("* SRTF gives better average response time.\n");
+                else if (latestPriorityResult.avgResponseTime < latestSRTFResult.avgResponseTime)
                     sb.append("* Priority gives better average response time.\n");
+                else
+                    sb.append("* Both have equal average response time.\n");
  
-                sb.append("\n* Both algorithms can cause starvation under certain conditions.\n");
+                sb.append("\n* SRTF minimises waiting time but ignores process urgency.\n");
+                sb.append("* Priority respects urgency but may not minimise overall waiting time.\n");
+                sb.append("* Both algorithms can cause starvation under certain conditions.\n");
                 sb.append("* Consider aging to prevent starvation in real systems.\n");
             }
         }
@@ -955,7 +969,13 @@ public class OS_Project_Main extends JFrame {
         public Integer getPriority()    { return priority; }
     }
  
+    // Kept for internal use (SJF code still works if called programmatically)
     static class SJFResult {
+        double avgResponseTime, avgTurnaroundTime, avgWaitingTime;
+    }
+
+    // NEW: SRTF result class
+    static class SRTFResult {
         double avgResponseTime, avgTurnaroundTime, avgWaitingTime;
     }
  
